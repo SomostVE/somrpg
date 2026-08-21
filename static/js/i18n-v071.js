@@ -1,5 +1,6 @@
 (() => {
   const originals = new WeakMap();
+  const optionOriginals = new WeakMap();
 
   const rules = [
     [/^BOSS GATE: (.+) blocks Floor (\d+)\.$/, "PORTE DU BOSS : $1 bloque l'étage $2."],
@@ -22,6 +23,12 @@
     [/^Discord account disconnected from this session\.$/, "Compte Discord déconnecté de cette session."],
   ];
 
+  const optionTranslations = {
+    Vanguard: "Avant-garde",
+    Strider: "Éclaireur",
+    Arcanist: "Arcaniste",
+  };
+
   function toFrench(text) {
     for (const [pattern, replacement] of rules) {
       if (pattern.test(text)) return text.replace(pattern, replacement);
@@ -31,10 +38,17 @@
 
   function apply() {
     const french = document.documentElement.lang === "fr";
+
     document.querySelectorAll(".system-message, .combat-log p").forEach((node) => {
       if (!originals.has(node)) originals.set(node, node.textContent);
       const original = originals.get(node);
       node.textContent = french ? toFrench(original) : original;
+    });
+
+    document.querySelectorAll("select option").forEach((option) => {
+      if (!optionOriginals.has(option)) optionOriginals.set(option, option.textContent);
+      const original = optionOriginals.get(option);
+      option.textContent = french ? (optionTranslations[original] || original) : original;
     });
   }
 
