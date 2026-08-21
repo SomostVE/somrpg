@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import api_views, colony_views, index_views, profile_views, views
+from . import api_views, colony_views, index_views, profile_views, quest_views, views
 
 
 urlpatterns = [
@@ -16,6 +16,9 @@ urlpatterns = [
     path("tower/<int:floor_number>/travel/", views.travel_floor, name="travel_floor"),
     path("shop/", views.floor_shop, name="floor_shop"),
     path("shop/<int:offer_id>/buy/", views.buy_floor_shop_item, name="buy_floor_shop_item"),
+    path("quests/", quest_views.quests, name="quests"),
+    path("quests/<int:quest_id>/complete/", quest_views.complete_quest, name="complete_quest"),
+    path("quests/checklist/claim/", quest_views.claim_quest_checklist, name="claim_quest_checklist"),
     path("guard/", views.city_guard, name="city_guard"),
     path("guard/start/", views.guard_start, name="guard_start"),
     path("guard/stop/", views.guard_stop, name="guard_stop"),
