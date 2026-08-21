@@ -136,16 +136,17 @@ class TowerProgressionTests(TestCase):
 
 
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_v080_assets_and_dynamic_menu(self):
+    def test_base_layout_exposes_v081_readability_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-language="fr"')
         self.assertContains(response, 'data-language="en"')
         self.assertContains(response, "css/v080-compact.css")
+        self.assertContains(response, "css/v081-readability.css")
         self.assertContains(response, "js/i18n-content-v080.js")
-        self.assertContains(response, "?v=0.8.0")
-        self.assertContains(response, "VER <span id=\"version-label\">0.8.0</span>", html=False)
+        self.assertContains(response, "?v=0.8.1")
+        self.assertContains(response, "VER <span id=\"version-label\">0.8.1</span>", html=False)
         self.assertContains(response, "menu-entry-index")
         self.assertContains(response, "quick-stats")
 
@@ -190,7 +191,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.8.0")
+        self.assertEqual(response.json()["version"], "0.8.1")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
