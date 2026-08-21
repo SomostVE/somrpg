@@ -12,17 +12,27 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.8.0
+## Current milestone — v0.9.0
 
 ### Tower ascent
 
 - 20 authored floors form the first tower sector.
 - Every floor has its own name, biome and market identity.
 - Players can travel freely between every unlocked floor without losing their highest progression.
+- The Tower screen now shows the whole authored sector as a clickable visual map.
+- Locked future floors remain visible as disabled map cards.
 - Revisited floors use their normal encounter pool; cleared boss gates do not block return visits.
 - Major progression bosses currently guard Floors 5, 10, 15 and 20.
 - Clearing the highest unlocked floor opens the next floor.
 - Floor discovery is recorded automatically in the Codex.
+
+### Visual layer
+
+- Original local SVG artwork illustrates the current floor and the tower map without external runtime dependencies.
+- Eight reusable environment illustrations cover plains, settlements, forests, fortresses, highlands, water districts, canyon/volcanic areas and archives/labyrinths.
+- The Camp screen displays the active floor artwork.
+- The Tower map uses illustrated clickable floor cards with current, unlocked, locked and boss states.
+- The visual assets remain lightweight and fully self-hosted.
 
 ### Floor shops
 
@@ -70,7 +80,7 @@ The left navigation is generated from a central registry instead of being hardco
 - Core shell uses explicit bilingual labels and runtime messages/combat logs have a French translation layer.
 - Desktop layout is intentionally dense: narrow player/menu rail, large central work area and permanent right chat rail.
 - Local/anonymous play still displays the chat rail but keeps messages locked until Discord authentication.
-- Responsive tablet/mobile layout collapses to one column.
+- Responsive tablet/mobile layout collapses appropriately while the visual floor map reduces its column count.
 - Static assets are versioned and the browser polls `/api/version/` so running clients reload automatically when SomRPG changes version.
 
 ### Live community chat
