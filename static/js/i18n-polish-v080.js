@@ -1,5 +1,5 @@
 (() => {
-  const originalTitles = new Map();
+  let originalTitle = null;
   const titleRules = [
     [/^Shop - SomRPG$/i, "Boutique - SomRPG"],
     [/^Tower - SomRPG$/i, "Tour - SomRPG"],
@@ -24,11 +24,10 @@
 
   function sync() {
     const french = document.documentElement.lang === "fr";
-    if (!originalTitles.has(document, "title")) originalTitles.set(document, document.title);
-    const originalTitle = originalTitles.get(document) || document.title;
+    if (originalTitle === null) originalTitle = document.title;
     document.title = french ? frenchTitle(originalTitle) : originalTitle;
 
-    document.querySelectorAll('[aria-label="Main commands"], [aria-label="Language / Langue"]').forEach((element) => {
+    document.querySelectorAll('[aria-label="Main commands"], [aria-label="Language / Langue"], [data-i18n-original-aria]').forEach((element) => {
       const original = element.dataset.i18nOriginalAria || element.getAttribute("aria-label") || "";
       if (!element.dataset.i18nOriginalAria) element.dataset.i18nOriginalAria = original;
       if (!french) {
