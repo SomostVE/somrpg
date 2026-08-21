@@ -1,1 +1,85 @@
-{% load static %}<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{% block title %}SomRPG{% endblock %}</title><link rel="stylesheet" href="{% static 'css/app.css' %}"></head><body><div class="app-shell"><header class="topbar"><a class="brand" href="{% url 'home' %}">SomRPG</a>{% if character %}<div class="top-stats"><span>LV {{ character.level }}</span><span>{{ character.gold }} G</span><span>Floor {{ character.floor }}</span></div>{% endif %}</header>{% if character %}<nav class="main-nav"><a href="{% url 'home' %}">Home</a><a href="{% url 'character' %}">Character</a><a href="{% url 'inventory' %}">Inventory</a><a href="{% url 'explore' %}">Explore</a></nav>{% endif %}<main>{% if messages %}<div class="messages">{% for message in messages %}<div class="message {{ message.tags }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% block content %}{% endblock %}</main><footer>SomRPG v{{ version }}</footer></div></body></html>
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08101c">
+  <title>{% block title %}SomRPG{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+  <div class="crt-overlay" aria-hidden="true"></div>
+
+  <div class="screen-shell">
+    <header class="system-bar retro-window">
+      <div>
+        <a class="brand" href="{% url 'home' %}">SomRPG</a>
+        <span class="system-subtitle">DUNGEON ARCHIVE / PERSONAL TERMINAL</span>
+      </div>
+      <div class="system-meta">
+        <span>VER {{ version }}</span>
+        <span>{% if character %}SAVE ACTIVE{% else %}NEW RECORD{% endif %}</span>
+      </div>
+    </header>
+
+    {% if character %}
+    <div class="game-layout">
+      <aside class="sidebar">
+        <section class="retro-window status-window">
+          <div class="window-title">STATUS</div>
+          <h2 class="character-name">{{ character.name }}</h2>
+          <dl class="status-table">
+            <div><dt>LV</dt><dd>{{ character.level }}</dd></div>
+            <div><dt>XP</dt><dd>{{ character.xp }}/{{ character.xp_to_next_level }}</dd></div>
+            <div><dt>HP</dt><dd>{{ character.max_hp }}</dd></div>
+            <div><dt>ATK</dt><dd>{{ character.total_attack }}</dd></div>
+            <div><dt>DEF</dt><dd>{{ character.total_defense }}</dd></div>
+            <div><dt>GOLD</dt><dd>{{ character.gold }}</dd></div>
+            <div><dt>FLOOR</dt><dd>{{ character.floor }}</dd></div>
+          </dl>
+        </section>
+
+        <nav class="retro-window command-window" aria-label="Main commands">
+          <div class="window-title">COMMAND</div>
+          <a href="{% url 'home' %}"><span>&gt;</span> Camp</a>
+          <a href="{% url 'character' %}"><span>&gt;</span> Character</a>
+          <a href="{% url 'inventory' %}"><span>&gt;</span> Inventory</a>
+          <a href="{% url 'explore' %}"><span>&gt;</span> Explore</a>
+        </nav>
+      </aside>
+
+      <main class="main-column">
+        {% if messages %}
+        <section class="retro-window message-window">
+          <div class="window-title">SYSTEM LOG</div>
+          {% for message in messages %}
+          <p class="system-message {{ message.tags }}">{{ message }}</p>
+          {% endfor %}
+        </section>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+    {% else %}
+    <main class="standalone-main">
+      {% if messages %}
+      <section class="retro-window message-window">
+        <div class="window-title">SYSTEM LOG</div>
+        {% for message in messages %}
+        <p class="system-message {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+      </section>
+      {% endif %}
+      {% block standalone_content %}{% endblock %}
+    </main>
+    {% endif %}
+
+    <footer class="footer-line">
+      <span>SOMRPG TERMINAL</span>
+      <span>LOCAL SAVE / SQLITE</span>
+    </footer>
+  </div>
+</body>
+</html>
