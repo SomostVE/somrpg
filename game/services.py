@@ -97,7 +97,7 @@ def discover_item(character: Character, item: Item):
 def discover_floor(character: Character, floor: TowerFloor | None):
     if not floor:
         return False
-    return discover(character, "floor", floor.floor_number, f"Floor {floor.floor_number} — {floor.name}")
+    return discover(character, "floor", floor.floor_number, f"Sector {floor.floor_number} — {floor.name}")
 
 
 def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> CombatResult:
@@ -111,7 +111,7 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
     player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
     rounds = []
     if enemy.is_boss:
-        rounds.append(f"BOSS GATE: {enemy.name} blocks Floor {defeated_floor}.")
+        rounds.append(f"BOSS GATE: {enemy.name} blocks Sector {defeated_floor}.")
 
     for n in range(1, 51):
         damage = max(1, character.total_attack + extra_attack + colony["damage"] - enemy.defense + random.randint(-1, 1))
