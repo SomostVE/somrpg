@@ -1,0 +1,56 @@
+{% extends "game/base.html" %}
+
+{% block title %}Quests - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">QUESTS</span><span class="lang-fr">QUÊTES</span></div>
+  <div class="page-body">
+    <div class="shop-header-grid">
+      <div><p class="section-code">S{{ active_floor|stringformat:"02d" }}</p><h1 class="page-title"><span class="lang-en">Quest board</span><span class="lang-fr">Tableau des quêtes</span></h1></div>
+      <div class="shop-balance"><span class="lang-en">AP</span><span class="lang-fr">PA</span> {{ quest_profile.adventure_energy }}/100</div>
+    </div>
+    {% if quest_result %}
+      <div class="quest-result">
+        {% if quest_result.status == 'success' %}<strong>{{ quest_result.name }}</strong> · +{{ quest_result.xp }} XP · +{{ quest_result.gold }}G · +{{ quest_result.supplies }} <span class="lang-en">supplies</span><span class="lang-fr">ressources</span>
+        {% elif quest_result.status == 'energy' %}<span class="lang-en">Not enough AP. Required:</span><span class="lang-fr">Pas assez de PA. Requis :</span> {{ quest_result.cost }}
+        {% elif quest_result.status == 'guard' %}<span class="lang-en">End guard duty before leaving on a quest.</span><span class="lang-fr">Terminez le service de garde avant de partir en quête.</span>
+        {% elif quest_result.status == 'checklist' %}<span class="lang-en">Checklist reward:</span><span class="lang-fr">Récompense de la liste :</span> +{{ quest_result.gold }}G
+        {% else %}<span class="lang-en">Checklist not completed or already claimed.</span><span class="lang-fr">Liste incomplète ou récompense déjà récupérée.</span>{% endif %}
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+<div class="quest-shell">
+  <section class="retro-window page-window">
+    <div class="window-title"><span class="lang-en">AVAILABLE QUESTS</span><span class="lang-fr">QUÊTES DISPONIBLES</span></div>
+    <div class="page-body quest-list">
+      {% for quest in quests %}
+      <article class="quest-card">
+        <div class="quest-card-head"><h3>{{ quest.name }}</h3><strong>{{ quest.energy_cost }} <span class="lang-en">AP</span><span class="lang-fr">PA</span></strong></div>
+        <p>{{ quest.description }}</p>
+        <div class="quest-rewards"><span>+{{ quest.xp_reward }} XP</span><span>+{{ quest.gold_reward }}G</span><span>+{{ quest.supply_reward }} <span class="lang-en">supplies</span><span class="lang-fr">ressources</span></span></div>
+        <div class="quest-meta"><span><span class="lang-en">Difficulty</span><span class="lang-fr">Difficulté</span> {{ quest.difficulty }}</span></div>
+        <form method="post" action="{% url 'complete_quest' quest.id %}">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Start quest</span><span class="lang-fr">Lancer la quête</span></button></form>
+      </article>
+      {% empty %}<p class="empty-text"><span class="lang-en">No quest available.</span><span class="lang-fr">Aucune quête disponible.</span></p>{% endfor %}
+    </div>
+  </section>
+
+  <aside class="retro-window page-window">
+    <div class="window-title"><span class="lang-en">DAILY CHECKLIST</span><span class="lang-fr">LISTE QUOTIDIENNE</span></div>
+    <div class="page-body quest-side">
+      <div class="quest-progress">
+        {% for name, value, target in daily_tasks %}
+        <div class="quest-progress-row">
+          <span>{% if name == 'Adventures' %}<span class="lang-en">Quests</span><span class="lang-fr">Quêtes</span>{% elif name == 'Arena wins' %}<span class="lang-en">Arena wins</span><span class="lang-fr">Victoires d'arène</span>{% else %}<span class="lang-en">Dungeon clears</span><span class="lang-fr">Secteurs nettoyés</span>{% endif %}</span>
+          <strong>{{ value }}/{{ target }}</strong>
+        </div>
+        {% endfor %}
+      </div>
+      <form method="post" action="{% url 'claim_quest_checklist' %}">{% csrf_token %}<button class="button {% if daily_complete and not daily.task_reward_claimed %}primary{% endif %}" type="submit" {% if not daily_complete or daily.task_reward_claimed %}disabled{% endif %}><span class="lang-en">Claim reward</span><span class="lang-fr">Récupérer la récompense</span></button></form>
+    </div>
+  </aside>
+</div>
+{% endblock %}
