@@ -1,0 +1,51 @@
+{% extends "game/base.html" %}
+
+{% block title %}Floor Shop - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title"><span class="lang-en">FLOOR SHOP</span><span class="lang-fr">BOUTIQUE D'ÉTAGE</span></div>
+  <div class="page-body">
+    <div class="shop-header-grid">
+      <div>
+        <p class="section-code">F{{ character.floor|stringformat:"02d" }} // {% if tower_floor %}{{ tower_floor.shop_name|upper }}{% endif %}</p>
+        <h1 class="page-title"><span class="lang-en">Progressive Stock</span><span class="lang-fr">Stock progressif</span></h1>
+      </div>
+      <div class="shop-balance">{{ character.gold }} G</div>
+    </div>
+    <p class="story-text">
+      <span class="lang-en">Shop stock expands permanently as higher floors are reached. Items from cleared floors remain available.</span>
+      <span class="lang-fr">Le stock s'agrandit définitivement en atteignant de nouveaux étages. Les objets des étages déjà franchis restent disponibles.</span>
+    </p>
+  </div>
+</section>
+
+<section class="retro-window page-window">
+  <div class="window-title"><span class="lang-en">AVAILABLE STOCK</span><span class="lang-fr">STOCK DISPONIBLE</span></div>
+  <div class="page-body shop-grid">
+    {% for offer in offers %}
+      <article class="shop-card {% if offer.unlock_floor == character.floor %}new-stock{% endif %}">
+        <span class="stock-tag">
+          {% if offer.unlock_floor == character.floor %}<span class="lang-en">NEW ON THIS FLOOR</span><span class="lang-fr">NOUVEAU À CET ÉTAGE</span>{% else %}F{{ offer.unlock_floor|stringformat:"02d" }}{% endif %}
+        </span>
+        <h3>{{ offer.item.name }}</h3>
+        <p>{{ offer.item.description }}</p>
+        <div class="shop-meta">
+          <span><span class="gear-slot">{{ offer.item.get_slot_display }}</span>{{ offer.item.get_rarity_display }}</span>
+          <strong>{{ offer.price }} G</strong>
+        </div>
+        <div class="shop-meta">
+          <span>ATK +{{ offer.item.attack_bonus }} · DEF +{{ offer.item.defense_bonus }}</span>
+          <span>F{{ offer.unlock_floor }}</span>
+        </div>
+        <form method="post" action="{% url 'buy_floor_shop_item' offer.id %}">
+          {% csrf_token %}
+          <button class="button primary" type="submit"><span class="lang-en">Buy</span><span class="lang-fr">Acheter</span></button>
+        </form>
+      </article>
+    {% empty %}
+      <p class="empty-text"><span class="lang-en">No shop stock is available yet.</span><span class="lang-fr">Aucun stock n'est encore disponible.</span></p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
