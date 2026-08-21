@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.utils import timezone
 
 from .models import Colony
@@ -8,7 +10,6 @@ BUILDINGS = {
     "market": {"base_cost": 70, "population": 5},
     "hunters": {"base_cost": 90, "population": 8},
     "training": {"base_cost": 100, "population": 8},
-    "workshop": {"base_cost": 90, "population": 10},
 }
 
 
@@ -23,7 +24,6 @@ def colony_bonuses(character):
         "gold_multiplier": 1.0 + colony.treasury_level * 0.05,
         "loot_bonus": colony.hunters_level * 3,
         "sell_multiplier": min(0.90, 0.50 + colony.market_level * 0.05),
-        "craft_multiplier": 1.0 + colony.workshop_level * 0.05,
     }
 
 
@@ -82,7 +82,7 @@ def collect_colony_gold(character):
     amount, hours = pending_colony_gold(colony)
     if not hours:
         return 0
-    colony.last_gold_collected_at += timezone.timedelta(hours=hours)
+    colony.last_gold_collected_at += timedelta(hours=hours)
     colony.save(update_fields=["last_gold_collected_at"])
     character.gold += amount
     character.total_gold_earned += amount
