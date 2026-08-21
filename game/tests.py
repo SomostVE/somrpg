@@ -123,16 +123,18 @@ class TowerProgressionTests(TestCase):
         self.assertGreater(vanguard.combat_max_hp, strider.combat_max_hp)
         self.assertGreater(arcanist.total_attack, vanguard.total_attack)
 
-    def test_navigation_unlocks_services_and_always_exposes_index(self):
+    def test_navigation_uses_profile_and_colony(self):
         early = Character.objects.create(name="Early", floor=1)
         advanced = Character.objects.create(name="Advanced", floor=5)
         early_codes = {entry["code"] for section in navigation_for(early) for entry in section["entries"]}
         advanced_codes = {entry["code"] for section in navigation_for(advanced) for entry in section["entries"]}
-        self.assertIn("index", early_codes)
-        self.assertNotIn("guard", early_codes)
-        self.assertNotIn("town", early_codes)
-        self.assertIn("guard", advanced_codes)
-        self.assertIn("town", advanced_codes)
+        self.assertIn("profile", early_codes)
+        self.assertNotIn("character", early_codes)
+        self.assertNotIn("inventory", early_codes)
+        self.assertNotIn("codex", early_codes)
+        self.assertNotIn("colony", early_codes)
+        self.assertIn("colony", advanced_codes)
+        self.assertNotIn("town", advanced_codes)
 
     def test_visual_map_shows_full_tower_with_locked_future_floors(self):
         Character.objects.create(name="Cartographer", floor=2)
@@ -150,21 +152,47 @@ class TowerProgressionTests(TestCase):
         self.assertContains(response, "images/biomes/plains.svg")
 
 
+class ProfileAndColonyTests(TestCase):
+    def test_profile_combines_character_inventory_and_codex(self):
+        character = Character.objects.create(name="Profile Hero", floor=3)
+        offer = FloorShopOffer.objects.select_related("item").first()
+        InventoryItem.objects.create(character=character, item=offer.item)
+        response = self.client.get("/profile/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "PLAYER PROFILE")
+        self.assertContains(response, "INVENTAIRE")
+        self.assertContains(response, "CODEX")
+        self.assertContains(response, offer.item.name)
+
+    def test_legacy_player_pages_render_unified_profile(self):
+        Character.objects.create(name="Legacy Profile")
+        for url in ("/character/", "/inventory/", "/codex/"):
+            response = self.client.get(url)
+            self.assertEqual(response.status_code, 200)
+            self.assertContains(response, "PLAYER PROFILE")
+
+    def test_colony_page_is_available_after_floor_two(self):
+        Character.objects.create(name="Founder", floor=2, gold=100)
+        response = self.client.get("/colony/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "COLONIE")
+        self.assertContains(response, "HABITANTS")
+        self.assertContains(response, "images/biomes/settlement.svg")
+
+
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_v090_assets_and_dynamic_menu(self):
+    def test_base_layout_exposes_v010_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-language="fr"')
         self.assertContains(response, 'data-language="en"')
-        self.assertContains(response, "css/v080-compact.css")
-        self.assertContains(response, "css/v081-readability.css")
         self.assertContains(response, "css/v090-visual.css")
+        self.assertContains(response, "css/v010-colony-profile.css")
         self.assertContains(response, "classic/classic.css")
-        self.assertContains(response, "js/i18n-content-v080.js")
-        self.assertContains(response, "?v=0.9.0")
-        self.assertContains(response, "VER <span id=\"version-label\">0.9.0</span>", html=False)
-        self.assertContains(response, "menu-entry-index")
+        self.assertContains(response, "?v=0.10.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.10.0</span>", html=False)
+        self.assertContains(response, "menu-entry-profile")
         self.assertContains(response, "quick-stats")
 
     def test_tower_screen_has_french_and_english_travel_labels(self):
@@ -208,7 +236,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.9.0")
+        self.assertEqual(response.json()["version"], "0.10.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
