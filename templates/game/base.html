@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="{% static 'css/v07-tower.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v071-floor-nav.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
 <body data-app-version="{{ version }}" data-version-url="{% url 'version_status' %}" data-chat-url="{% url 'live_chat' %}">
@@ -47,7 +48,7 @@
             <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
             <div class="player-name-block">
               <strong>{{ character.name }}</strong>
-              <small>LV {{ character.level }} · {{ character.get_archetype_display|upper }}</small>
+              <small>LV {{ character.level }} · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</small>
             </div>
           </div>
           <div class="floor-chip">
@@ -64,7 +65,7 @@
             <span><b>CODEX</b>{{ character.codex_completion|floatformat:0 }}%</span>
           </div>
           <div class="xp-mini"><span style="width:{% widthratio character.xp character.xp_to_next_level 100 %}%"></span></div>
-          <small class="xp-caption">XP {{ character.xp }}/{{ character.xp_to_next_level }} · CRAFT {{ character.crafting_xp }}</small>
+          <small class="xp-caption">XP {{ character.xp }}/{{ character.xp_to_next_level }} · <span class="lang-en">CRAFT</span><span class="lang-fr">ART.</span> {{ character.crafting_xp }}</small>
         </section>
 
         <nav class="retro-window command-window compact-command evolving-command" aria-label="Main commands">
