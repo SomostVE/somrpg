@@ -1,0 +1,13 @@
+services:
+  somrpg:
+    build: .
+    container_name: somrpg
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_DEBUG: "0"
+      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      SOMRPG_DATA_DIR: "/app/data"
+    volumes:
+      - ./data:/app/data
