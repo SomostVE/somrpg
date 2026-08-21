@@ -1,0 +1,58 @@
+{% extends "game/base.html" %}
+{% load static %}
+
+{% block title %}Colony - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window colony-hero">
+  <div class="window-title"><span class="lang-en">COLONY</span><span class="lang-fr">COLONIE</span></div>
+  <div class="colony-hero-grid">
+    <div class="colony-art"><img src="{% static 'images/biomes/settlement.svg' %}" alt=""></div>
+    <div class="colony-overview">
+      <p class="section-code"><span class="lang-en">SURVIVORS FOLLOW YOUR ASCENT</span><span class="lang-fr">LES SURVIVANTS SUIVENT VOTRE ASCENSION</span></p>
+      <h1><span class="lang-en">Your settlement</span><span class="lang-fr">Votre colonie</span></h1>
+      <div class="colony-summary-grid">
+        <span><b><span class="lang-en">INHABITANTS</span><span class="lang-fr">HABITANTS</span></b>{{ colony.inhabitants }}</span>
+        <span><b><span class="lang-en">RECRUITED</span><span class="lang-fr">RECRUTÉS</span></b>{{ colony.lifetime_recruited }}</span>
+        <span><b><span class="lang-en">PENDING GOLD</span><span class="lang-fr">OR EN ATTENTE</span></b>{{ pending_colony_gold }}G</span>
+        <span><b><span class="lang-en">HOURS</span><span class="lang-fr">HEURES</span></b>{{ pending_colony_hours }}</span>
+      </div>
+      <form method="post" action="{% url 'colony_collect' %}">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Collect income</span><span class="lang-fr">Récolter les revenus</span></button></form>
+    </div>
+  </div>
+</section>
+
+<section class="retro-window colony-bonus-panel">
+  <div class="window-title"><span class="lang-en">ACTIVE BONUSES</span><span class="lang-fr">BONUS ACTIFS</span></div>
+  <div class="colony-bonus-grid">
+    <span><b><span class="lang-en">DAMAGE</span><span class="lang-fr">DÉGÂTS</span></b>+{{ bonuses.damage }}</span>
+    <span><b><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></b>+{% widthratio colony.treasury_level 1 5 %}%</span>
+    <span><b><span class="lang-en">DROP RATE</span><span class="lang-fr">TAUX DE BUTIN</span></b>+{{ bonuses.loot_bonus }}%</span>
+    <span><b><span class="lang-en">SELL VALUE</span><span class="lang-fr">VALEUR DE VENTE</span></b>{% widthratio bonuses.sell_multiplier 1 100 %}%</span>
+    <span><b><span class="lang-en">CRAFT XP</span><span class="lang-fr">XP ARTISANAT</span></b>+{% widthratio colony.workshop_level 1 5 %}%</span>
+  </div>
+</section>
+
+<section class="retro-window colony-buildings-panel">
+  <div class="window-title"><span class="lang-en">BUILDINGS</span><span class="lang-fr">BÂTIMENTS</span></div>
+  <div class="colony-building-grid">
+    {% for building in buildings %}
+    <article class="colony-building">
+      <div class="colony-building-head">
+        <strong><span class="lang-en">{{ building.label_en }}</span><span class="lang-fr">{{ building.label_fr }}</span></strong>
+        <em>LV {{ building.level }}</em>
+      </div>
+      <div class="colony-building-effect">
+        {% if building.code == 'treasury' %}<span class="lang-en">Gold drops +5%/level · passive income</span><span class="lang-fr">Or +5%/niveau · revenus passifs</span>{% endif %}
+        {% if building.code == 'market' %}<span class="lang-en">Sale value +5%/level</span><span class="lang-fr">Valeur de vente +5%/niveau</span>{% endif %}
+        {% if building.code == 'hunters' %}<span class="lang-en">Drop chance +3%/level</span><span class="lang-fr">Chance de butin +3%/niveau</span>{% endif %}
+        {% if building.code == 'training' %}<span class="lang-en">Combat damage +1/level</span><span class="lang-fr">Dégâts +1/niveau</span>{% endif %}
+        {% if building.code == 'workshop' %}<span class="lang-en">Craft XP +5%/level</span><span class="lang-fr">XP artisanat +5%/niveau</span>{% endif %}
+      </div>
+      <div class="colony-building-cost"><span>{{ building.cost }}G</span><span>{{ building.population }} <span class="lang-en">inhabitants</span><span class="lang-fr">habitants</span></span></div>
+      <form method="post" action="{% url 'colony_upgrade' %}">{% csrf_token %}<input type="hidden" name="building" value="{{ building.code }}"><button class="button {% if building.available %}primary{% endif %}" type="submit"><span class="lang-en">Upgrade</span><span class="lang-fr">Améliorer</span> → LV {{ building.next_level }}</button></form>
+    </article>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
