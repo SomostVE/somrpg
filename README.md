@@ -7,21 +7,38 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Django 5.2 LTS
 - SQLite
 - Server-rendered HTML/CSS
-- Lightweight JavaScript for the bilingual interface
+- Lightweight JavaScript for bilingual UI, live shell and transient chat
 - Gunicorn + WhiteNoise
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.5.0
+## Current milestone — v0.6.0
 
 ### Interface
 
 - English and French interface with a persistent FR / EN selector.
-- The first visit follows the browser language when it is French; otherwise English is used.
-- Wide desktop layout up to 1720 px instead of the former narrow centered column.
-- The classic Town laboratory uses three columns on large monitors and two columns on medium desktops to reduce vertical scrolling.
-- Tablet and mobile layouts collapse back to one column, with compact two-column status and command panels where space allows.
-- The language system remains entirely self-hosted and requires no translation service or external API.
+- Three-column desktop shell inspired by classic browser RPGs: compact player/menu rail, central game content and authenticated live chat on the right.
+- Player status is condensed into a small identity card and resource grid instead of a large status panel.
+- Tablet and mobile layouts collapse cleanly to one column.
+- Static assets include the SomRPG version in their URL, preventing stale CSS/JS after an update.
+- The browser checks `/api/version/` periodically and reloads itself when the running server changes version, removing the need for Ctrl+F5.
+
+### Live community chat
+
+- Only authenticated accounts can read or send chat messages.
+- Chat is transient: it is not stored in SQLite and a newly connected/refreshed client receives no previous messages.
+- The server only keeps a short-lived in-memory/shared-container buffer so currently connected clients can exchange messages between Gunicorn workers.
+- The chat rail becomes a normal stacked panel on tablet/mobile.
+
+### Internal clock and daily reset
+
+- The interface displays the current Europe/Paris clock and a live countdown to the reset.
+- SomRPG's logical day changes every day at **22:00 Europe/Paris**, including daylight-saving changes.
+- Classic daily systems (daily board, login reward, fortune, shop/adventure rotation and boss hit counters) use this 22:00 reset boundary.
+
+### Release branch cleanup
+
+A GitHub Actions cleanup workflow runs after pushes to `main` and deletes merged `feat/`, `fix/` and `chore/` branches. This keeps only useful work branches instead of accumulating old release branches.
 
 ### Core RPG
 
@@ -71,7 +88,7 @@ The classic layer already feeds selected bonuses back into normal dungeon combat
 
 ## Discord OAuth
 
-Discord login is optional for local solo play but required to enter community rankings.
+Discord login is optional for local solo play but required to enter community rankings and live chat.
 
 Configure the OAuth2 redirect URL as:
 
@@ -96,7 +113,7 @@ The OAuth scope is limited to `identify`.
 docker compose up --build -d
 ```
 
-Persistent data is stored in `./data`.
+Persistent game data is stored in `./data`. Live chat is intentionally excluded from persistent storage.
 
 ## Administration
 
