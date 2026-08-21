@@ -92,15 +92,17 @@ def discover_item(character: Character, item: Item):
 
 
 def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
+    from classic.services import classic_combat_bonus
+    extra_attack, extra_defense = classic_combat_bonus(character)
     player_hp, enemy_hp = character.max_hp, enemy.max_hp
     rounds = []
     for n in range(1, 51):
-        damage = max(1, character.total_attack - enemy.defense + random.randint(-1, 1))
+        damage = max(1, character.total_attack + extra_attack - enemy.defense + random.randint(-1, 1))
         enemy_hp = max(0, enemy_hp - damage)
         rounds.append(f"Round {n}: {character.name} deals {damage} damage.")
         if enemy_hp <= 0:
             break
-        damage = max(1, enemy.attack - character.total_defense + random.randint(-1, 1))
+        damage = max(1, enemy.attack - character.total_defense - extra_defense + random.randint(-1, 1))
         player_hp = max(0, player_hp - damage)
         rounds.append(f"{enemy.name} deals {damage} damage.")
         if player_hp <= 0:
@@ -108,8 +110,11 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
     if enemy_hp > 0:
         return CombatResult(False, enemy, rounds)
 
-    gold = random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max))
-    levels = character.grant_xp(enemy.xp_reward)
+    from classic.services import guild_reward_multipliers
+    xp_multiplier, gold_multiplier = guild_reward_multipliers(character)
+    xp_reward = int(enemy.xp_reward * xp_multiplier)
+    gold = int(random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max)) * gold_multiplier)
+    levels = character.grant_xp(xp_reward)
     character.gold += gold
     character.total_gold_earned += gold
     character.dungeon_clears += 1
@@ -130,7 +135,11 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
         discover_item(character, enemy.loot)
         loot_name = enemy.loot.name
 
-    return CombatResult(True, enemy, rounds, enemy.xp_reward, gold, loot_name, levels)
+    from classic.services import check_achievements, record_daily
+    record_daily(character, dungeon_clears=1)
+    check_achievements(character)
+
+    return CombatResult(True, enemy, rounds, xp_reward, gold, loot_name, levels)
 
 
 def _normalized(value, maximum):
