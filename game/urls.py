@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import views
+from . import api_views, views
 
 
 urlpatterns = [
@@ -17,6 +17,8 @@ urlpatterns = [
     path("workshop/craft/<int:recipe_id>/", views.craft_recipe, name="craft_recipe"),
     path("codex/", views.codex, name="codex"),
     path("community/", views.community, name="community"),
+    path("api/version/", api_views.version_status, name="version_status"),
+    path("api/chat/", api_views.live_chat, name="live_chat"),
     path("auth/discord/", views.discord_login, name="discord_login"),
     path("auth/discord/callback/", views.discord_callback, name="discord_callback"),
     path("auth/logout/", views.discord_logout, name="discord_logout"),
