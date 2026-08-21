@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+from django.db import transaction
 from django.utils import timezone
 
 from .models import Colony
@@ -80,16 +81,20 @@ def pending_colony_gold(colony, now=None):
     return amount, hours
 
 
+@transaction.atomic
 def collect_colony_gold(character):
-    colony = get_colony(character)
+    locked_character = character.__class__.objects.select_for_update().get(pk=character.pk)
+    colony = Colony.objects.select_for_update().get(character_id=character.pk)
     amount, hours = pending_colony_gold(colony)
     if not hours:
         return 0
-    colony.last_gold_collected_at += timedelta(hours=hours)
+
+    colony.last_gold_collected_at = colony.last_gold_collected_at + timedelta(hours=hours)
     colony.save(update_fields=["last_gold_collected_at"])
-    character.gold += amount
-    character.total_gold_earned += amount
-    character.save(update_fields=["gold", "total_gold_earned", "updated_at"])
+
+    locked_character.gold += amount
+    locked_character.total_gold_earned += amount
+    locked_character.save(update_fields=["gold", "total_gold_earned", "updated_at"])
     return amount
 
 
