@@ -19,7 +19,7 @@
       </div>
       <div class="system-meta">
         <span>VER {{ version }}</span>
-        <span>{% if character %}SAVE ACTIVE{% else %}NEW RECORD{% endif %}</span>
+        <span>{% if character %}{% if character.guard_active %}CITY GUARD ACTIVE{% else %}SAVE ACTIVE{% endif %}{% else %}NEW RECORD{% endif %}</span>
       </div>
     </header>
 
@@ -36,6 +36,7 @@
             <div><dt>ATK</dt><dd>{{ character.total_attack }}</dd></div>
             <div><dt>DEF</dt><dd>{{ character.total_defense }}</dd></div>
             <div><dt>GOLD</dt><dd>{{ character.gold }}</dd></div>
+            <div><dt>SUPPLY</dt><dd>{{ character.guard_resources }}</dd></div>
             <div><dt>FLOOR</dt><dd>{{ character.floor }}</dd></div>
           </dl>
         </section>
@@ -45,6 +46,7 @@
           <a href="{% url 'home' %}"><span>&gt;</span> Camp</a>
           <a href="{% url 'character' %}"><span>&gt;</span> Character</a>
           <a href="{% url 'inventory' %}"><span>&gt;</span> Inventory</a>
+          <a href="{% url 'city_guard' %}"><span>&gt;</span> City Guard{% if character.guard_active %} [ON DUTY]{% endif %}</a>
           <a href="{% url 'explore' %}"><span>&gt;</span> Explore</a>
         </nav>
       </aside>
