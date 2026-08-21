@@ -50,6 +50,7 @@
         <form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell</span><span class="lang-fr">Vendre</span> · {{ row.sell_value }}G</button></form>
       </div>
     </article>
+    {% endwith %}
     {% empty %}
     <p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>
     {% endfor %}
