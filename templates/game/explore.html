@@ -1,10 +1,10 @@
 {% extends "game/base.html" %}
 
-{% block title %}Floor {{ active_floor }} - SomRPG{% endblock %}
+{% block title %}Floor {{ encounter_floor.floor_number }} - SomRPG{% endblock %}
 
 {% block content %}
 <section class="retro-window page-window compact-intro">
-  <div class="window-title"><span class="lang-en">ENCOUNTER</span><span class="lang-fr">RENCONTRE</span> · F{{ active_floor|stringformat:"02d" }}</div>
+  <div class="window-title"><span class="lang-en">ENCOUNTER</span><span class="lang-fr">RENCONTRE</span> · F{{ encounter_floor.floor_number|stringformat:"02d" }}</div>
   <div class="page-body">
     <div class="enemy-header">
       <div>
