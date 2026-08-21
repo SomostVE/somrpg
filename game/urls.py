@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import api_views, views
+from . import api_views, index_views, views
 
 
 urlpatterns = [
@@ -20,6 +20,7 @@ urlpatterns = [
     path("workshop/", views.workshop, name="workshop"),
     path("workshop/craft/<int:recipe_id>/", views.craft_recipe, name="craft_recipe"),
     path("codex/", views.codex, name="codex"),
+    path("index/", index_views.content_index, name="content_index"),
     path("community/", views.community, name="community"),
     path("api/version/", api_views.version_status, name="version_status"),
     path("api/chat/", api_views.live_chat, name="live_chat"),

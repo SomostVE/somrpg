@@ -12,8 +12,11 @@
   <link rel="stylesheet" href="{% static 'css/v06-shell.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v07-tower.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v071-floor-nav.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v080-compact.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/i18n-content-v080.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/i18n-polish-v080.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
 <body data-app-version="{{ version }}" data-version-url="{% url 'version_status' %}" data-chat-url="{% url 'live_chat' %}">
@@ -41,27 +44,27 @@
     </header>
 
     {% if character %}
-    <div class="game-layout{% if request.user.is_authenticated %} has-chat{% endif %}">
+    <div class="game-layout has-chat">
       <aside class="sidebar compact-sidebar">
         <section class="retro-window player-card tower-player-card">
           <div class="player-head">
             <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
             <div class="player-name-block">
               <strong>{{ character.name }}</strong>
-              <small>LV {{ character.level }} · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</small>
+              <small><span class="lang-en">LV</span><span class="lang-fr">NV</span> {{ character.level }} · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</small>
             </div>
           </div>
           <div class="floor-chip">
             <span>F{{ active_floor|stringformat:"02d" }}</span>
             <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</strong>
-            <small><span class="lang-en">MAX</span><span class="lang-fr">MAX</span> F{{ character.floor|stringformat:"02d" }}</small>
+            <small>MAX F{{ character.floor|stringformat:"02d" }}</small>
           </div>
           <div class="quick-stats">
-            <span><b>HP</b>{{ character.combat_max_hp }}</span>
-            <span><b>ATK</b>{{ character.total_attack }}</span>
+            <span><b><span class="lang-en">HP</span><span class="lang-fr">PV</span></b>{{ character.combat_max_hp }}</span>
+            <span><b><span class="lang-en">ATK</span><span class="lang-fr">ATQ</span></b>{{ character.total_attack }}</span>
             <span><b>DEF</b>{{ character.total_defense }}</span>
-            <span><b>G</b>{{ character.gold }}</span>
-            <span><b>SUP</b>{{ character.guard_resources }}</span>
+            <span><b><span class="lang-en">G</span><span class="lang-fr">OR</span></b>{{ character.gold }}</span>
+            <span><b><span class="lang-en">SUP</span><span class="lang-fr">RES</span></b>{{ character.guard_resources }}</span>
             <span><b>CODEX</b>{{ character.codex_completion|floatformat:0 }}%</span>
           </div>
           <div class="xp-mini"><span style="width:{% widthratio character.xp character.xp_to_next_level 100 %}%"></span></div>
@@ -98,20 +101,31 @@
         {% block content %}{% endblock %}
       </main>
 
-      {% if request.user.is_authenticated %}
       <aside class="chat-rail">
         <section class="retro-window live-chat-window">
           <div class="window-title"><span class="lang-en">LIVE CHAT</span><span class="lang-fr">CHAT EN DIRECT</span></div>
-          <div class="chat-presence"><span class="chat-dot"></span><span class="lang-en">Online only · no history</span><span class="lang-fr">En ligne uniquement · sans historique</span></div>
-          <div id="live-chat-messages" class="live-chat-messages" aria-live="polite"></div>
-          <form id="live-chat-form" class="live-chat-form" method="post" action="{% url 'live_chat' %}">
-            {% csrf_token %}
-            <textarea id="live-chat-input" name="message" maxlength="220" rows="2" autocomplete="off"></textarea>
-            <button class="button primary" type="submit"><span class="lang-en">Send</span><span class="lang-fr">Envoyer</span></button>
-          </form>
+          {% if request.user.is_authenticated %}
+            <div class="chat-presence"><span class="chat-dot"></span><span class="lang-en">Online only · no history</span><span class="lang-fr">En ligne uniquement · sans historique</span></div>
+            <div id="live-chat-messages" class="live-chat-messages" aria-live="polite"></div>
+            <form id="live-chat-form" class="live-chat-form" method="post" action="{% url 'live_chat' %}">
+              {% csrf_token %}
+              <textarea id="live-chat-input" name="message" maxlength="220" rows="2" autocomplete="off" placeholder="Message"></textarea>
+              <button class="button primary" type="submit"><span class="lang-en">Send</span><span class="lang-fr">Envoyer</span></button>
+            </form>
+          {% else %}
+            <div class="chat-locked">
+              <strong><span class="lang-en">CHAT LOCKED</span><span class="lang-fr">CHAT VERROUILLÉ</span></strong>
+              <span class="lang-en">Discord connection is required to read or write community messages.</span>
+              <span class="lang-fr">Une connexion Discord est requise pour lire ou écrire les messages communautaires.</span>
+              {% if discord_configured %}
+                <a class="button primary" href="{% url 'discord_login' %}"><span class="lang-en">Connect Discord</span><span class="lang-fr">Connecter Discord</span></a>
+              {% else %}
+                <small><span class="lang-en">Discord OAuth is not configured on this server.</span><span class="lang-fr">Discord OAuth n'est pas configuré sur ce serveur.</span></small>
+              {% endif %}
+            </div>
+          {% endif %}
         </section>
       </aside>
-      {% endif %}
     </div>
     {% else %}
     <main class="standalone-main">

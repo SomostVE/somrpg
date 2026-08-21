@@ -12,7 +12,7 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.7.1
+## Current milestone — v0.8.0
 
 ### Tower ascent
 
@@ -33,6 +33,17 @@ Shop stock follows the currently selected floor.
 - Shop price and unlock floor are data-driven and editable from Django Admin.
 - Buying or spending gold does not reduce the Commerce ranking, which tracks gross gold earned.
 
+### Content index
+
+The in-game Content Index exposes the currently configured world data in compact searchable tables:
+
+- enemies and bosses with combat stats, rewards and drops;
+- items and equipment with slots, rarity, bonuses, floor unlock and shop price;
+- floors, locations, inferred city/settlement entries and bosses;
+- crafting recipes, adventures, companions and enchantments;
+- achievements, world bosses and event dungeons;
+- an explicit NPC section, currently empty because no NPC data model exists yet.
+
 ### Character builds and equipment
 
 - Vanguard: additional HP and Defense.
@@ -46,6 +57,7 @@ Shop stock follows the currently selected floor.
 
 The left navigation is generated from a central registry instead of being hardcoded into the base template.
 
+- Content Index is available immediately.
 - City Guard unlocks at Floor 2.
 - Workshop unlocks at Floor 3.
 - The broader Town systems laboratory unlocks at Floor 5.
@@ -53,12 +65,12 @@ The left navigation is generated from a central registry instead of being hardco
 
 ### Interface
 
-- English and French interface with a persistent FR / EN selector.
-- Core screens now use explicit bilingual labels instead of relying on partial text replacement.
-- Runtime combat/system messages receive a dedicated FR translation layer.
-- Explanatory copy has been reduced in favor of compact status, actions and navigation.
-- Three-column desktop shell: compact player/menu rail, central game content and authenticated live chat on the right.
-- Responsive tablet/mobile layout.
+- Persistent English / French selector.
+- Current tower, enemy, boss, item, shop, adventure, achievement, companion and event content has French display translations.
+- Core shell uses explicit bilingual labels and runtime messages/combat logs have a French translation layer.
+- Desktop layout is intentionally dense: narrow player/menu rail, large central work area and permanent right chat rail.
+- Local/anonymous play still displays the chat rail but keeps messages locked until Discord authentication.
+- Responsive tablet/mobile layout collapses to one column.
 - Static assets are versioned and the browser polls `/api/version/` so running clients reload automatically when SomRPG changes version.
 
 ### Live community chat

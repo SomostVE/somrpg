@@ -1,0 +1,140 @@
+{% extends "game/base.html" %}
+
+{% block title %}Content Index - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">CONTENT INDEX</span><span class="lang-fr">INDEX DU CONTENU</span></div>
+  <div class="page-body">
+    <div class="index-toolbar">
+      <div>
+        <h1 class="page-title"><span class="lang-en">World database</span><span class="lang-fr">Base de données du monde</span></h1>
+        <p class="story-text"><span class="lang-en">Current configured game content.</span><span class="lang-fr">Contenu actuellement configuré dans le jeu.</span></p>
+      </div>
+      <input id="index-search" class="index-search" type="search" placeholder="Search" autocomplete="off">
+    </div>
+    <div class="index-summary">
+      <span><span class="lang-en">Enemies</span><span class="lang-fr">Ennemis</span> <strong>{{ enemies|length }}</strong></span>
+      <span><span class="lang-en">Items</span><span class="lang-fr">Objets</span> <strong>{{ items|length }}</strong></span>
+      <span><span class="lang-en">Floors</span><span class="lang-fr">Étages</span> <strong>{{ floors|length }}</strong></span>
+      <span><span class="lang-en">Cities</span><span class="lang-fr">Villes</span> <strong>{{ cities|length }}</strong></span>
+      <span><span class="lang-en">NPCs</span><span class="lang-fr">PNJ</span> <strong>0</strong></span>
+    </div>
+  </div>
+</section>
+
+<details class="index-section" open>
+  <summary><span class="lang-en">ENEMIES / BOSSES</span><span class="lang-fr">ENNEMIS / BOSS</span> · {{ enemies|length }}</summary>
+  <div class="index-table-wrap">
+    <table class="index-table">
+      <thead><tr><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></th><th>PV</th><th>ATQ</th><th>DEF</th><th>XP</th><th><span class="lang-en">Gold</span><span class="lang-fr">Or</span></th><th><span class="lang-en">Drop</span><span class="lang-fr">Butin</span></th></tr></thead>
+      <tbody>
+      {% for enemy in enemies %}
+        <tr class="index-row">
+          <td>{{ enemy.name }}{% if enemy.is_boss %} · BOSS{% endif %}</td>
+          <td>F{{ enemy.floor_min }}{% if enemy.floor_max and enemy.floor_max != enemy.floor_min %}-F{{ enemy.floor_max }}{% endif %}</td>
+          <td>{{ enemy.max_hp }}</td><td>{{ enemy.attack }}</td><td>{{ enemy.defense }}</td><td>{{ enemy.xp_reward }}</td>
+          <td>{{ enemy.gold_min }}-{{ enemy.gold_max }}</td>
+          <td>{% if enemy.loot %}{{ enemy.loot.name }} · {{ enemy.loot_chance }}%{% else %}-{% endif %}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<details class="index-section" open>
+  <summary><span class="lang-en">ITEMS / EQUIPMENT</span><span class="lang-fr">OBJETS / ÉQUIPEMENT</span> · {{ items|length }}</summary>
+  <div class="index-table-wrap">
+    <table class="index-table">
+      <thead><tr><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th><span class="lang-en">Type</span><span class="lang-fr">Type</span></th><th><span class="lang-en">Rarity</span><span class="lang-fr">Rareté</span></th><th>ATQ</th><th>DEF</th><th><span class="lang-en">Unlock</span><span class="lang-fr">Déblocage</span></th><th><span class="lang-en">Price</span><span class="lang-fr">Prix</span></th></tr></thead>
+      <tbody>
+      {% for item in items %}
+        <tr class="index-row"><td>{{ item.name }}</td><td>{{ item.get_slot_display }}</td><td>{{ item.get_rarity_display }}</td><td>+{{ item.attack_bonus }}</td><td>+{{ item.defense_bonus }}</td><td>F{{ item.unlock_floor }}</td><td>{% if item.shop_enabled %}{{ item.shop_price }} G{% else %}-{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">FLOORS / LOCATIONS</span><span class="lang-fr">ÉTAGES / LIEUX</span> · {{ floors|length }}</summary>
+  <div class="index-table-wrap">
+    <table class="index-table">
+      <thead><tr><th><span class="lang-en">Floor</span><span class="lang-fr">Étage</span></th><th><span class="lang-en">Location</span><span class="lang-fr">Lieu</span></th><th><span class="lang-en">Biome</span><span class="lang-fr">Biome</span></th><th><span class="lang-en">Shop</span><span class="lang-fr">Boutique</span></th><th>Boss</th></tr></thead>
+      <tbody>
+      {% for floor in floors %}
+        <tr class="index-row"><td>F{{ floor.floor_number|stringformat:"02d" }}</td><td>{{ floor.name }}</td><td>{{ floor.biome }}</td><td>{{ floor.shop_name }}</td><td>{% if floor.has_boss %}{{ floor.boss_gate.enemy.name }}{% else %}-{% endif %}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">CITIES / SETTLEMENTS</span><span class="lang-fr">VILLES / BOURGS</span> · {{ cities|length }}</summary>
+  <div class="index-table-wrap">
+    <table class="index-table"><thead><tr><th><span class="lang-en">Floor</span><span class="lang-fr">Étage</span></th><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th><span class="lang-en">Biome</span><span class="lang-fr">Biome</span></th></tr></thead><tbody>
+      {% for city in cities %}<tr class="index-row"><td>F{{ city.floor_number|stringformat:"02d" }}</td><td>{{ city.name }}</td><td>{{ city.biome }}</td></tr>{% empty %}<tr><td colspan="3" class="index-muted"><span class="lang-en">No city-type location configured.</span><span class="lang-fr">Aucun lieu de type ville configuré.</span></td></tr>{% endfor %}
+    </tbody></table>
+  </div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">NPCs</span><span class="lang-fr">PNJ</span> · 0</summary>
+  <div class="page-body index-muted"><span class="lang-en">No NPC model exists yet.</span><span class="lang-fr">Aucun PNJ n'est encore défini dans les données.</span></div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">CRAFTING RECIPES</span><span class="lang-fr">RECETTES D'ARTISANAT</span> · {{ recipes|length }}</summary>
+  <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Recipe</span><span class="lang-fr">Recette</span></th><th><span class="lang-en">Output</span><span class="lang-fr">Produit</span></th><th><span class="lang-en">Supplies</span><span class="lang-fr">Ressources</span></th><th><span class="lang-en">Gold</span><span class="lang-fr">Or</span></th><th>XP</th></tr></thead><tbody>
+    {% for recipe in recipes %}<tr class="index-row"><td>{{ recipe.name }}</td><td>{{ recipe.output_quantity }}× {{ recipe.output_item.name }}</td><td>{{ recipe.supply_cost }}</td><td>{{ recipe.gold_cost }}</td><td>{{ recipe.xp_reward }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">ADVENTURES</span><span class="lang-fr">AVENTURES</span> · {{ adventures|length }}</summary>
+  <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th>PA</th><th>XP</th><th><span class="lang-en">Gold</span><span class="lang-fr">Or</span></th><th><span class="lang-en">Supplies</span><span class="lang-fr">Ressources</span></th><th><span class="lang-en">Difficulty</span><span class="lang-fr">Difficulté</span></th></tr></thead><tbody>
+    {% for adventure in adventures %}<tr class="index-row"><td>{{ adventure.name }}</td><td>{{ adventure.energy_cost }}</td><td>{{ adventure.xp_reward }}</td><td>{{ adventure.gold_reward }}</td><td>{{ adventure.supply_reward }}</td><td>{{ adventure.difficulty }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">COMPANIONS / ENCHANTMENTS</span><span class="lang-fr">COMPAGNONS / ENCHANTEMENTS</span> · {{ companions|length }} / {{ enchantments|length }}</summary>
+  <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Companion</span><span class="lang-fr">Compagnon</span></th><th><span class="lang-en">Habitat</span><span class="lang-fr">Habitat</span></th><th>ATQ</th><th>DEF</th><th><span class="lang-en">Cost</span><span class="lang-fr">Coût</span></th></tr></thead><tbody>
+    {% for companion in companions %}<tr class="index-row"><td>{{ companion.name }}</td><td>{{ companion.get_habitat_display }}</td><td>{{ companion.base_attack }}</td><td>{{ companion.base_defense }}</td><td>{{ companion.supply_cost }} RES</td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Enchantment</span><span class="lang-fr">Enchantement</span></th><th>ATQ</th><th>DEF</th><th><span class="lang-en">Cost</span><span class="lang-fr">Coût</span></th></tr></thead><tbody>
+    {% for enchantment in enchantments %}<tr class="index-row"><td>{{ enchantment.name }}</td><td>+{{ enchantment.attack_bonus }}</td><td>+{{ enchantment.defense_bonus }}</td><td>{{ enchantment.gold_cost }} G</td></tr>{% endfor %}
+  </tbody></table></div>
+</details>
+
+<details class="index-section">
+  <summary><span class="lang-en">ACHIEVEMENTS / EVENTS</span><span class="lang-fr">SUCCÈS / ÉVÉNEMENTS</span> · {{ achievements|length }}</summary>
+  <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Achievement</span><span class="lang-fr">Succès</span></th><th><span class="lang-en">Target</span><span class="lang-fr">Objectif</span></th><th><span class="lang-en">Reward</span><span class="lang-fr">Récompense</span></th></tr></thead><tbody>
+    {% for achievement in achievements %}<tr class="index-row"><td>{{ achievement.name }}</td><td>{{ achievement.target }}</td><td>{{ achievement.reward_gold }} G</td></tr>{% endfor %}
+  </tbody></table></div>
+  <div class="index-table-wrap"><table class="index-table"><tbody>
+    {% for boss in event_bosses %}<tr class="index-row"><td><span class="lang-en">World boss</span><span class="lang-fr">Boss mondial</span></td><td>{{ boss.name }}</td><td>{{ boss.current_hp }}/{{ boss.max_hp }} PV</td></tr>{% endfor %}
+    {% for dungeon in event_dungeons %}<tr class="index-row"><td><span class="lang-en">Event dungeon</span><span class="lang-fr">Donjon événementiel</span></td><td>{{ dungeon.name }}</td><td>F{{ dungeon.max_floor }}</td></tr>{% endfor %}
+  </tbody></table></div>
+</details>
+
+<script>
+(() => {
+  const input = document.getElementById('index-search');
+  if (!input) return;
+  const syncPlaceholder = () => {
+    input.placeholder = document.documentElement.lang === 'fr' ? 'Rechercher' : 'Search';
+  };
+  input.addEventListener('input', () => {
+    const query = input.value.trim().toLocaleLowerCase();
+    document.querySelectorAll('.index-row').forEach((row) => {
+      row.hidden = Boolean(query && !row.textContent.toLocaleLowerCase().includes(query));
+    });
+  });
+  new MutationObserver(syncPlaceholder).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
+  syncPlaceholder();
+})();
+</script>
+{% endblock %}

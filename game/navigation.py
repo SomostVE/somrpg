@@ -14,8 +14,6 @@ class NavigationEntry:
     marker: str = "·"
 
 
-# Single registry for the left menu. Adding, removing or moving a system no
-# longer requires rewriting the base template.
 NAVIGATION = [
     NavigationEntry("camp", "Camp", "Camp", "home", 1, "core", "C"),
     NavigationEntry("tower", "Tower", "Tour", "tower_map", 1, "core", "T"),
@@ -24,6 +22,7 @@ NAVIGATION = [
     NavigationEntry("character", "Character", "Personnage", "character", 1, "player", "P"),
     NavigationEntry("inventory", "Inventory", "Inventaire", "inventory", 1, "player", "I"),
     NavigationEntry("codex", "Codex", "Codex", "codex", 1, "player", "X"),
+    NavigationEntry("index", "Content Index", "Index du contenu", "content_index", 1, "data", "@"),
     NavigationEntry("guard", "City Guard", "Garde de la ville", "city_guard", 2, "systems", "G"),
     NavigationEntry("workshop", "Workshop", "Atelier", "workshop", 3, "systems", "A"),
     NavigationEntry("town", "Town Systems", "Systèmes de ville", "classic:town", 5, "systems", "+"),
@@ -34,6 +33,7 @@ NAVIGATION = [
 SECTION_LABELS = {
     "core": ("ASCENT", "ASCENSION"),
     "player": ("PLAYER", "JOUEUR"),
+    "data": ("DATA", "DONNÉES"),
     "systems": ("SERVICES", "SERVICES"),
     "network": ("NETWORK", "RÉSEAU"),
 }
@@ -42,7 +42,7 @@ SECTION_LABELS = {
 def navigation_for(character):
     floor = character.floor if character else 1
     sections = []
-    for section_code in ("core", "player", "systems", "network"):
+    for section_code in ("core", "player", "data", "systems", "network"):
         entries = []
         for entry in NAVIGATION:
             if entry.section != section_code or entry.unlock_floor > floor:
