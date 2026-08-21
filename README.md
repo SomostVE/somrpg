@@ -11,7 +11,7 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.3.0
+## Current milestone — v0.4.0
 
 ### Core RPG
 
@@ -34,15 +34,36 @@ Discord-connected players can participate in an active community season. The glo
 | Crafting | Crafting XP earned during the season | ×2 |
 | Codex | Discovery completion percentage | ×0.5 |
 
-Dungeon, Commerce and Crafting are normalized against the current season leader to a 0–100 score. Codex already uses a 0–100 completion percentage. Global points are the weighted average across the four coefficients.
-
 Gold spent never reduces Commerce progress: the ranking tracks gross gold earned, not current wallet balance.
+
+## Classic systems laboratory
+
+Version 0.4.0 adds a separate Django app named `classic`. It deliberately groups broad browser-RPG mechanics in one removable module so each system can be tested, renamed, merged into the core game or deleted later without dismantling the dungeon/community architecture.
+
+The Town currently prototypes:
+
+- regenerating Adventure Points and rotating Adventure Board jobs;
+- permanent stat training;
+- asynchronous Arena, Honor and win streaks;
+- daily Market offers and temporary mounts;
+- Blacksmith dismantling and item upgrades;
+- Enchantments;
+- item sacrifice and persistent Aura;
+- recruitable/trainable Companions;
+- passive Stronghold resources and an Underworld branch;
+- player Guilds, donations, Instructor/Treasure upgrades and Guild Raids;
+- daily login rewards, task checklist and Fortune Shrine;
+- achievements;
+- a shared World Boss;
+- a limited Event Dungeon / tower.
+
+The classic layer already feeds selected bonuses back into normal dungeon combat: active companions and enhanced equipment affect combat, while Guild Instructor/Treasure/Raid levels modify dungeon rewards.
 
 ## Discord OAuth
 
 Discord login is optional for local solo play but required to enter community rankings.
 
-Create a Discord application and configure its OAuth2 redirect URL to:
+Configure the OAuth2 redirect URL as:
 
 ```text
 https://YOUR-SOMRPG-DOMAIN/auth/discord/callback/
@@ -57,7 +78,7 @@ DISCORD_REDIRECT_URI=https://YOUR-SOMRPG-DOMAIN/auth/discord/callback/
 DJANGO_ALLOWED_HOSTS=YOUR-SOMRPG-DOMAIN,localhost,127.0.0.1
 ```
 
-The OAuth scope is limited to `identify`; SomRPG does not request access to Discord messages, servers or contacts.
+The OAuth scope is limited to `identify`.
 
 ## Run with Docker
 
@@ -67,15 +88,6 @@ docker compose up --build -d
 
 Persistent data is stored in `./data`.
 
-## Community administration
+## Administration
 
-Django Admin exposes:
-
-- community seasons;
-- seasonal progress;
-- Discord profiles;
-- crafting recipes;
-- Codex discoveries;
-- enemies, items and characters.
-
-The migration creates an initial active `Founders Season` and two starter crafting recipes.
+Django Admin exposes the core game, community systems and the entire `classic` laboratory so values and content can be adjusted without code changes.
