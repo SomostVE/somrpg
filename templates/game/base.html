@@ -6,54 +6,108 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#08101c">
   <title>{% block title %}SomRPG{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/app.css' %}">
-  <link rel="stylesheet" href="{% static 'css/community.css' %}">
-  <link rel="stylesheet" href="{% static 'css/layout-wide.css' %}">
-  <script defer src="{% static 'js/i18n.js' %}"></script>
+  <link rel="stylesheet" href="{% static 'css/app.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/community.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/layout-wide.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v06-shell.css' %}?v={{ version }}">
+  <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
-<body>
+<body data-app-version="{{ version }}" data-version-url="{% url 'version_status' %}" data-chat-url="{% url 'live_chat' %}">
   <div class="crt-overlay" aria-hidden="true"></div>
   <div class="screen-shell">
-    <header class="system-bar retro-window">
-      <div><a class="brand" href="{% url 'home' %}">SomRPG</a><span class="system-subtitle">DUNGEON ARCHIVE / COMMUNITY TERMINAL</span></div>
+    <header class="system-bar retro-window compact-system-bar">
+      <div class="brand-line">
+        <a class="brand" href="{% url 'home' %}">SomRPG</a>
+        <span class="system-subtitle">DUNGEON ARCHIVE / COMMUNITY TERMINAL</span>
+      </div>
+      <div class="system-center">
+        <span class="clock-label"><span class="lang-en">PARIS</span><span class="lang-fr">PARIS</span></span>
+        <strong id="paris-clock">--:--:--</strong>
+        <span class="reset-label"><span class="lang-en">RESET IN</span><span class="lang-fr">RESET DANS</span></span>
+        <strong id="reset-countdown">--:--:--</strong>
+      </div>
       <div class="system-meta">
         <div class="language-switcher" aria-label="Language">
           <button type="button" data-language="fr" aria-pressed="false">FR</button>
           <button type="button" data-language="en" aria-pressed="false">EN</button>
         </div>
-        <span>VER {{ version }}</span>
+        <span>VER <span id="version-label">{{ version }}</span></span>
         {% if request.user.is_authenticated and discord_profile %}<span>DISCORD: {{ discord_profile.display_name }}</span>
         {% elif discord_configured %}<a href="{% url 'discord_login' %}">CONNECT DISCORD</a>{% else %}<span>LOCAL MODE</span>{% endif %}
-        <span>{% if character %}{% if character.guard_active %}CITY GUARD ACTIVE{% else %}SAVE ACTIVE{% endif %}{% else %}NEW RECORD{% endif %}</span>
       </div>
     </header>
+
     {% if character %}
-    <div class="game-layout">
-      <aside class="sidebar">
-        <section class="retro-window status-window">
-          <div class="window-title">STATUS</div><h2 class="character-name">{{ character.name }}</h2>
-          <dl class="status-table">
-            <div><dt>LV</dt><dd>{{ character.level }}</dd></div><div><dt>XP</dt><dd>{{ character.xp }}/{{ character.xp_to_next_level }}</dd></div>
-            <div><dt>HP</dt><dd>{{ character.max_hp }}</dd></div><div><dt>ATK</dt><dd>{{ character.total_attack }}</dd></div>
-            <div><dt>DEF</dt><dd>{{ character.total_defense }}</dd></div><div><dt>GOLD</dt><dd>{{ character.gold }}</dd></div>
-            <div><dt>SUPPLY</dt><dd>{{ character.guard_resources }}</dd></div><div><dt>CRAFT XP</dt><dd>{{ character.crafting_xp }}</dd></div>
-            <div><dt>CODEX</dt><dd>{{ character.codex_completion|floatformat:1 }}%</dd></div><div><dt>FLOOR</dt><dd>{{ character.floor }}</dd></div>
-          </dl>
+    <div class="game-layout{% if request.user.is_authenticated %} has-chat{% endif %}">
+      <aside class="sidebar compact-sidebar">
+        <section class="retro-window player-card">
+          <div class="player-head">
+            <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
+            <div class="player-name-block">
+              <strong>{{ character.name }}</strong>
+              <small>LV {{ character.level }} · FLOOR {{ character.floor }}</small>
+            </div>
+          </div>
+          <div class="quick-stats">
+            <span><b>HP</b>{{ character.max_hp }}</span>
+            <span><b>ATK</b>{{ character.total_attack }}</span>
+            <span><b>DEF</b>{{ character.total_defense }}</span>
+            <span><b>G</b>{{ character.gold }}</span>
+            <span><b>SUP</b>{{ character.guard_resources }}</span>
+            <span><b>CODEX</b>{{ character.codex_completion|floatformat:0 }}%</span>
+          </div>
+          <div class="xp-mini"><span style="width:{% widthratio character.xp character.xp_to_next_level 100 %}%"></span></div>
+          <small class="xp-caption">XP {{ character.xp }}/{{ character.xp_to_next_level }} · CRAFT {{ character.crafting_xp }}</small>
         </section>
-        <nav class="retro-window command-window" aria-label="Main commands">
+
+        <nav class="retro-window command-window compact-command" aria-label="Main commands">
           <div class="window-title">COMMAND</div>
-          <a href="{% url 'home' %}"><span>&gt;</span> Camp</a><a href="{% url 'character' %}"><span>&gt;</span> Character</a>
-          <a href="{% url 'inventory' %}"><span>&gt;</span> Inventory</a><a href="{% url 'city_guard' %}"><span>&gt;</span> City Guard{% if character.guard_active %} [ON DUTY]{% endif %}</a>
-          <a href="{% url 'workshop' %}"><span>&gt;</span> Workshop</a><a href="{% url 'classic:town' %}"><span>&gt;</span> Town</a>
-          <a href="{% url 'codex' %}"><span>&gt;</span> Codex</a><a href="{% url 'community' %}"><span>&gt;</span> Community</a>
+          <a href="{% url 'home' %}"><span>&gt;</span> Camp</a>
+          <a href="{% url 'character' %}"><span>&gt;</span> Character</a>
+          <a href="{% url 'inventory' %}"><span>&gt;</span> Inventory</a>
+          <a href="{% url 'classic:town' %}"><span>&gt;</span> Town</a>
           <a href="{% url 'explore' %}"><span>&gt;</span> Explore</a>
+          <a href="{% url 'city_guard' %}"><span>&gt;</span> City Guard{% if character.guard_active %} [ON DUTY]{% endif %}</a>
+          <a href="{% url 'workshop' %}"><span>&gt;</span> Workshop</a>
+          <a href="{% url 'codex' %}"><span>&gt;</span> Codex</a>
+          <a href="{% url 'community' %}"><span>&gt;</span> Community</a>
         </nav>
-        {% if request.user.is_authenticated %}<form method="post" action="{% url 'discord_logout' %}" class="account-form">{% csrf_token %}<button type="submit" class="text-command">&gt; Disconnect account</button></form>{% endif %}
+        {% if request.user.is_authenticated %}
+        <form method="post" action="{% url 'discord_logout' %}" class="account-form">
+          {% csrf_token %}<button type="submit" class="text-command">&gt; Disconnect account</button>
+        </form>
+        {% endif %}
       </aside>
+
       <main class="main-column">
-        {% if messages %}<section class="retro-window message-window"><div class="window-title">SYSTEM LOG</div>{% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}</section>{% endif %}
+        {% if messages %}
+        <section class="retro-window message-window">
+          <div class="window-title">SYSTEM LOG</div>
+          {% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}
+        </section>
+        {% endif %}
         {% block content %}{% endblock %}
       </main>
+
+      {% if request.user.is_authenticated %}
+      <aside class="chat-rail">
+        <section class="retro-window live-chat-window">
+          <div class="window-title"><span class="lang-en">LIVE CHAT</span><span class="lang-fr">CHAT EN DIRECT</span></div>
+          <div class="chat-presence">
+            <span class="chat-dot"></span>
+            <span class="lang-en">Connected only · no history</span>
+            <span class="lang-fr">Connectés uniquement · aucun historique</span>
+          </div>
+          <div id="live-chat-messages" class="live-chat-messages" aria-live="polite"></div>
+          <form id="live-chat-form" class="live-chat-form" method="post" action="{% url 'live_chat' %}">
+            {% csrf_token %}
+            <textarea id="live-chat-input" name="message" maxlength="220" rows="2" autocomplete="off"></textarea>
+            <button class="button primary" type="submit"><span class="lang-en">Send</span><span class="lang-fr">Envoyer</span></button>
+          </form>
+        </section>
+      </aside>
+      {% endif %}
     </div>
     {% else %}
     <main class="standalone-main">
@@ -62,6 +116,11 @@
       <section class="retro-window standalone-community-link"><div class="window-title">NETWORK</div><div class="page-body"><a class="button" href="{% url 'community' %}">&gt; Open Community Rankings</a>{% if not request.user.is_authenticated and discord_configured %}<a class="button primary" href="{% url 'discord_login' %}">&gt; Connect with Discord</a>{% endif %}</div></section>
     </main>
     {% endif %}
+
+    <div id="version-update-banner" class="version-update-banner" hidden>
+      <span class="lang-en">New SomRPG version detected. Updating…</span>
+      <span class="lang-fr">Nouvelle version de SomRPG détectée. Mise à jour…</span>
+    </div>
     <footer class="footer-line"><span>SOMRPG TERMINAL</span><span>DJANGO / SQLITE / DISCORD COMMUNITY</span></footer>
   </div>
 </body>
