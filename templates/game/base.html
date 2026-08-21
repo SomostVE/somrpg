@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{% static 'css/layout-wide.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v06-shell.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v07-tower.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v071-floor-nav.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
@@ -23,19 +24,18 @@
         <span class="system-subtitle"><span class="lang-en">TOWER ASCENT / COMMUNITY TERMINAL</span><span class="lang-fr">ASCENSION DE LA TOUR / TERMINAL COMMUNAUTAIRE</span></span>
       </div>
       <div class="system-center">
-        <span class="clock-label">PARIS</span>
-        <strong id="paris-clock">--:--:--</strong>
-        <span class="reset-label"><span class="lang-en">RESET IN</span><span class="lang-fr">RESET DANS</span></span>
-        <strong id="reset-countdown">--:--:--</strong>
+        <span>PARIS</span><strong id="paris-clock">--:--:--</strong>
+        <span><span class="lang-en">RESET IN</span><span class="lang-fr">RESET DANS</span></span><strong id="reset-countdown">--:--:--</strong>
       </div>
       <div class="system-meta">
-        <div class="language-switcher" aria-label="Language">
+        <div class="language-switcher" aria-label="Language / Langue">
           <button type="button" data-language="fr" aria-pressed="false">FR</button>
           <button type="button" data-language="en" aria-pressed="false">EN</button>
         </div>
         <span>VER <span id="version-label">{{ version }}</span></span>
         {% if request.user.is_authenticated and discord_profile %}<span>DISCORD: {{ discord_profile.display_name }}</span>
-        {% elif discord_configured %}<a href="{% url 'discord_login' %}">CONNECT DISCORD</a>{% else %}<span>LOCAL MODE</span>{% endif %}
+        {% elif discord_configured %}<a href="{% url 'discord_login' %}"><span class="lang-en">CONNECT DISCORD</span><span class="lang-fr">CONNECTER DISCORD</span></a>
+        {% else %}<span><span class="lang-en">LOCAL MODE</span><span class="lang-fr">MODE LOCAL</span></span>{% endif %}
       </div>
     </header>
 
@@ -51,8 +51,9 @@
             </div>
           </div>
           <div class="floor-chip">
-            <span>F{{ character.floor|stringformat:"02d" }}</span>
-            <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Non cartographié</span>{% endif %}</strong>
+            <span>F{{ active_floor|stringformat:"02d" }}</span>
+            <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</strong>
+            <small><span class="lang-en">MAX</span><span class="lang-fr">MAX</span> F{{ character.floor|stringformat:"02d" }}</small>
           </div>
           <div class="quick-stats">
             <span><b>HP</b>{{ character.combat_max_hp }}</span>
@@ -67,11 +68,9 @@
         </section>
 
         <nav class="retro-window command-window compact-command evolving-command" aria-label="Main commands">
-          <div class="window-title"><span class="lang-en">MENU</span><span class="lang-fr">MENU</span></div>
+          <div class="window-title">MENU</div>
           {% for section in navigation_sections %}
-            <div class="menu-section-label">
-              <span class="lang-en">{{ section.label_en }}</span><span class="lang-fr">{{ section.label_fr }}</span>
-            </div>
+            <div class="menu-section-label"><span class="lang-en">{{ section.label_en }}</span><span class="lang-fr">{{ section.label_fr }}</span></div>
             {% for entry in section.entries %}
               <a href="{{ entry.href }}" class="menu-entry menu-entry-{{ entry.code }}">
                 <span class="menu-glyph">{{ entry.marker }}</span>
@@ -83,7 +82,7 @@
         </nav>
         {% if request.user.is_authenticated %}
         <form method="post" action="{% url 'discord_logout' %}" class="account-form">
-          {% csrf_token %}<button type="submit" class="text-command"><span class="lang-en">&gt; Disconnect account</span><span class="lang-fr">&gt; Déconnecter le compte</span></button>
+          {% csrf_token %}<button type="submit" class="text-command"><span class="lang-en">&gt; Disconnect</span><span class="lang-fr">&gt; Déconnexion</span></button>
         </form>
         {% endif %}
       </aside>
@@ -91,7 +90,7 @@
       <main class="main-column">
         {% if messages %}
         <section class="retro-window message-window">
-          <div class="window-title">SYSTEM LOG</div>
+          <div class="window-title"><span class="lang-en">SYSTEM</span><span class="lang-fr">SYSTÈME</span></div>
           {% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}
         </section>
         {% endif %}
@@ -102,11 +101,7 @@
       <aside class="chat-rail">
         <section class="retro-window live-chat-window">
           <div class="window-title"><span class="lang-en">LIVE CHAT</span><span class="lang-fr">CHAT EN DIRECT</span></div>
-          <div class="chat-presence">
-            <span class="chat-dot"></span>
-            <span class="lang-en">Connected only · no history</span>
-            <span class="lang-fr">Connectés uniquement · aucun historique</span>
-          </div>
+          <div class="chat-presence"><span class="chat-dot"></span><span class="lang-en">Online only · no history</span><span class="lang-fr">En ligne uniquement · sans historique</span></div>
           <div id="live-chat-messages" class="live-chat-messages" aria-live="polite"></div>
           <form id="live-chat-form" class="live-chat-form" method="post" action="{% url 'live_chat' %}">
             {% csrf_token %}
@@ -119,17 +114,20 @@
     </div>
     {% else %}
     <main class="standalone-main">
-      {% if messages %}<section class="retro-window message-window"><div class="window-title">SYSTEM LOG</div>{% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}</section>{% endif %}
+      {% if messages %}<section class="retro-window message-window"><div class="window-title"><span class="lang-en">SYSTEM</span><span class="lang-fr">SYSTÈME</span></div>{% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}</section>{% endif %}
       {% block standalone_content %}{% endblock %}
-      <section class="retro-window standalone-community-link"><div class="window-title">NETWORK</div><div class="page-body"><a class="button" href="{% url 'community' %}">&gt; Open Community Rankings</a>{% if not request.user.is_authenticated and discord_configured %}<a class="button primary" href="{% url 'discord_login' %}">&gt; Connect with Discord</a>{% endif %}</div></section>
+      <section class="retro-window standalone-community-link">
+        <div class="window-title"><span class="lang-en">NETWORK</span><span class="lang-fr">RÉSEAU</span></div>
+        <div class="page-body">
+          <a class="button" href="{% url 'community' %}"><span class="lang-en">Community rankings</span><span class="lang-fr">Classements communautaires</span></a>
+          {% if not request.user.is_authenticated and discord_configured %}<a class="button primary" href="{% url 'discord_login' %}"><span class="lang-en">Connect Discord</span><span class="lang-fr">Connecter Discord</span></a>{% endif %}
+        </div>
+      </section>
     </main>
     {% endif %}
 
-    <div id="version-update-banner" class="version-update-banner" hidden>
-      <span class="lang-en">New SomRPG version detected. Updating…</span>
-      <span class="lang-fr">Nouvelle version de SomRPG détectée. Mise à jour…</span>
-    </div>
-    <footer class="footer-line"><span>SOMRPG TERMINAL</span><span><span class="lang-en">TOWER DATA / SQLITE / DISCORD COMMUNITY</span><span class="lang-fr">DONNÉES TOUR / SQLITE / COMMUNAUTÉ DISCORD</span></span></footer>
+    <div id="version-update-banner" class="version-update-banner" hidden><span class="lang-en">Updating SomRPG…</span><span class="lang-fr">Mise à jour de SomRPG…</span></div>
+    <footer class="footer-line"><span>SOMRPG TERMINAL</span><span><span class="lang-en">TOWER / SQLITE / DISCORD</span><span class="lang-fr">TOUR / SQLITE / DISCORD</span></span></footer>
   </div>
 </body>
 </html>
