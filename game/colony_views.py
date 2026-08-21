@@ -21,7 +21,6 @@ BUILDING_LABELS = {
     "market": ("Trading Post", "Comptoir commercial"),
     "hunters": ("Hunters' Lodge", "Pavillon des chasseurs"),
     "training": ("Training Yard", "Terrain d'entraînement"),
-    "workshop": ("Artisans' Hall", "Halle des artisans"),
 }
 
 
@@ -29,6 +28,7 @@ def colony(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
+
     settlement = get_colony(character)
     pending_gold, pending_hours = pending_colony_gold(settlement)
     rows = []
@@ -46,6 +46,7 @@ def colony(request):
                 "available": character.gold >= quote["cost"] and settlement.inhabitants >= quote["population"],
             }
         )
+
     return render(
         request,
         "game/colony.html",
@@ -53,7 +54,7 @@ def colony(request):
             request,
             character,
             colony=settlement,
-            bonuses=colony_bonuses(character),
+            bonuses=colony_bonuses(character, settlement),
             buildings=rows,
             pending_colony_gold=pending_gold,
             pending_colony_hours=pending_hours,

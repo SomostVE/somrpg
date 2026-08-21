@@ -123,11 +123,13 @@ class TowerProgressionTests(TestCase):
         self.assertGreater(vanguard.combat_max_hp, strider.combat_max_hp)
         self.assertGreater(arcanist.total_attack, vanguard.total_attack)
 
-    def test_navigation_uses_profile_and_colony(self):
+    def test_navigation_uses_profile_colony_and_archives_order(self):
         early = Character.objects.create(name="Early", floor=1)
         advanced = Character.objects.create(name="Advanced", floor=5)
-        early_codes = {entry["code"] for section in navigation_for(early) for entry in section["entries"]}
-        advanced_codes = {entry["code"] for section in navigation_for(advanced) for entry in section["entries"]}
+        early_sections = navigation_for(early)
+        advanced_sections = navigation_for(advanced)
+        early_codes = {entry["code"] for section in early_sections for entry in section["entries"]}
+        advanced_codes = {entry["code"] for section in advanced_sections for entry in section["entries"]}
         self.assertIn("profile", early_codes)
         self.assertNotIn("character", early_codes)
         self.assertNotIn("inventory", early_codes)
@@ -135,6 +137,10 @@ class TowerProgressionTests(TestCase):
         self.assertNotIn("colony", early_codes)
         self.assertIn("colony", advanced_codes)
         self.assertNotIn("town", advanced_codes)
+        self.assertEqual(advanced_sections[0]["code"], "player")
+        self.assertEqual(advanced_sections[-1]["code"], "data")
+        archive = advanced_sections[-1]["entries"][0]
+        self.assertEqual(archive["label_fr"], "Archives")
 
     def test_visual_map_shows_full_tower_with_locked_future_floors(self):
         Character.objects.create(name="Cartographer", floor=2)
@@ -171,6 +177,10 @@ class ProfileAndColonyTests(TestCase):
             self.assertEqual(response.status_code, 200)
             self.assertContains(response, "PLAYER PROFILE")
 
+    def test_character_creation_prepares_colony_without_first_page_write(self):
+        character = Character.objects.create(name="Prepared Founder", floor=2)
+        self.assertEqual(character.colony.inhabitants, 3)
+
     def test_colony_page_is_available_after_floor_two(self):
         Character.objects.create(name="Founder", floor=2, gold=100)
         response = self.client.get("/colony/")
@@ -190,9 +200,11 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, "css/v090-visual.css")
         self.assertContains(response, "css/v010-colony-profile.css")
         self.assertContains(response, "classic/classic.css")
-        self.assertContains(response, "?v=0.10.0")
-        self.assertContains(response, "VER <span id=\"version-label\">0.10.0</span>", html=False)
+        self.assertContains(response, "?v=0.10.1")
+        self.assertContains(response, "VER <span id=\"version-label\">0.10.1</span>", html=False)
         self.assertContains(response, "menu-entry-profile")
+        self.assertContains(response, '<span class="menu-glyph lang-fr">C</span>', html=False)
+        self.assertContains(response, '<span class="lang-fr">amp</span>', html=False)
         self.assertContains(response, "quick-stats")
 
     def test_tower_screen_has_french_and_english_travel_labels(self):
@@ -236,7 +248,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.10.0")
+        self.assertEqual(response.json()["version"], "0.10.1")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
