@@ -1,7 +1,15 @@
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 
-from .models import DailyActivity
+from game.models import Character
+
+from .models import Colony, DailyActivity
+
+
+@receiver(post_save, sender=Character)
+def ensure_character_colony(sender, instance, created, **kwargs):
+    if created:
+        Colony.objects.get_or_create(character=instance)
 
 
 @receiver(pre_save, sender=DailyActivity)
