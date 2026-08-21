@@ -4,16 +4,21 @@
 
 {% block standalone_content %}
 <section class="retro-window page-window">
-  <div class="window-title">ADVENTURER REGISTRATION</div>
+  <div class="window-title"><span class="lang-en">ADVENTURER REGISTRATION</span><span class="lang-fr">ENREGISTREMENT DE L'AVENTURIER</span></div>
   <div class="page-body">
-    <p class="section-code">NEW RECORD // FLOOR 01</p>
-    <h1 class="page-title">Create your adventurer</h1>
+    <p class="section-code"><span class="lang-en">NEW RECORD // FLOOR 01 // TOWER ASCENT</span><span class="lang-fr">NOUVEAU DOSSIER // ÉTAGE 01 // ASCENSION DE LA TOUR</span></p>
+    <h1 class="page-title"><span class="lang-en">Create your adventurer</span><span class="lang-fr">Créez votre aventurier</span></h1>
 
     <p class="story-text">
-      The terminal hums to life. A blank guild record waits for a name.
-      Beyond this screen lies a dungeon measured in floors, encounters and old reports.
-      There is no party waiting outside: this descent belongs to one adventurer.
+      <span class="lang-en">The tower is divided into independent floors. Every new floor can introduce another region, stronger enemies, new shop stock and a boss gate.</span>
+      <span class="lang-fr">La tour est divisée en étages indépendants. Chaque nouvel étage peut introduire une région, des ennemis plus puissants, de nouveaux objets en boutique et un boss de palier.</span>
     </p>
+
+    <div class="class-grid">
+      <div class="class-card"><strong>VANGUARD</strong><span>+10 HP · +2 DEF</span></div>
+      <div class="class-card"><strong>STRIDER</strong><span>+2 ATK · <span class="lang-en">balanced HP</span><span class="lang-fr">PV standards</span></span></div>
+      <div class="class-card"><strong>ARCANIST</strong><span>+3 ATK · -5 HP</span></div>
+    </div>
 
     <hr class="divider">
 
@@ -22,22 +27,13 @@
       {{ form.name.label_tag }}
       {{ form.name }}
       {{ form.name.errors }}
-      <button class="button primary" type="submit">&gt; Register and enter</button>
+      {{ form.archetype.label_tag }}
+      {{ form.archetype }}
+      {{ form.archetype.errors }}
+      <button class="button primary" type="submit"><span class="lang-en">&gt; Register and enter Floor 1</span><span class="lang-fr">&gt; S'enregistrer et entrer à l'étage 1</span></button>
     </form>
 
-    <p class="command-note">SAVE DATA IS STORED LOCALLY IN THE SOMRPG DATABASE.</p>
-  </div>
-</section>
-
-<section class="retro-window help-window">
-  <div class="window-title">SYSTEM INFORMATION</div>
-  <div class="page-body">
-    <ul class="text-list">
-      <li>One persistent adventurer record.</li>
-      <li>Floor-by-floor dungeon progression.</li>
-      <li>Automatic turn-based encounters with readable battle logs.</li>
-      <li>Experience, levels, gold, loot and equipment.</li>
-    </ul>
+    <p class="command-note"><span class="lang-en">ARCHETYPE BONUSES ARE PASSIVE AND CAN BE REBALANCED LATER.</span><span class="lang-fr">LES BONUS D'ARCHÉTYPE SONT PASSIFS ET POURRONT ÊTRE RÉÉQUILIBRÉS PLUS TARD.</span></p>
   </div>
 </section>
 {% endblock %}
