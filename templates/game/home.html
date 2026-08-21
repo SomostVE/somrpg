@@ -1,1 +1,45 @@
-{% extends "game/base.html" %}{% block content %}<section class="hero panel"><p class="eyebrow">CURRENT ASCENT</p><h1>Floor {{ character.floor }}</h1><p>{{ character.name }}, the path forward is open.</p><a class="button primary" href="{% url 'explore' %}">Explore the floor</a></section><section class="stat-grid"><article class="panel stat"><span>Level</span><strong>{{ character.level }}</strong></article><article class="panel stat"><span>XP</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></article><article class="panel stat"><span>HP</span><strong>{{ character.max_hp }}</strong></article><article class="panel stat"><span>Gold</span><strong>{{ character.gold }}</strong></article></section>{% endblock %}
+{% extends "game/base.html" %}
+
+{% block title %}Camp - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">CAMP / FLOOR {{ character.floor }}</div>
+  <div class="page-body">
+    <p class="section-code">CURRENT ASCENT // READY</p>
+    <h1 class="page-title">Floor {{ character.floor }}</h1>
+
+    <p class="story-text">
+      {{ character.name }} waits at the edge of the safe room. Beyond the reinforced door,
+      the dungeon continues into another dark sector. The route upward will remain sealed
+      until the hostile presence on this floor is removed.
+    </p>
+
+    <hr class="divider">
+
+    <div class="data-grid">
+      <div class="data-row"><span>LEVEL</span><strong>{{ character.level }}</strong></div>
+      <div class="data-row"><span>EXPERIENCE</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div>
+      <div class="data-row"><span>MAX HP</span><strong>{{ character.max_hp }}</strong></div>
+      <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
+    </div>
+
+    <div class="action-row">
+      <a class="button primary" href="{% url 'explore' %}">&gt; Advance into the dungeon</a>
+    </div>
+    <p class="command-note">CLEAR THE ENCOUNTER TO OPEN THE NEXT FLOOR.</p>
+  </div>
+</section>
+
+<section class="retro-window help-window">
+  <div class="window-title">CAMP NOTES</div>
+  <div class="page-body">
+    <ul class="text-list">
+      <li><strong>Character</strong> displays permanent stats and equipment bonuses.</li>
+      <li><strong>Inventory</strong> contains recovered items and equipment.</li>
+      <li><strong>Explore</strong> starts the current floor encounter.</li>
+      <li>Combat resolves automatically and is recorded line by line.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
