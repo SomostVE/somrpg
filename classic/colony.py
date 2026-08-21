@@ -17,7 +17,7 @@ def get_colony(character):
     try:
         return character.colony
     except Colony.DoesNotExist:
-        return Colony.objects.create(character=character)
+        return Colony.objects.get_or_create(character=character)[0]
 
 
 def colony_bonuses(character, colony=None):
