@@ -77,4 +77,4 @@ STORAGES = {
 }
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SOMRPG_VERSION = "0.1.1"
+SOMRPG_VERSION = "0.2.0"
