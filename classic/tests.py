@@ -5,6 +5,7 @@ from django.utils import timezone
 
 from game.models import Character, InventoryItem, Item
 
+from .colony import colony_bonuses, get_colony, pending_colony_gold, sell_value, upgrade_colony
 from .models import AdventureTemplate, CompanionSpecies
 from .services import (
     claim_daily_reward,
@@ -38,6 +39,17 @@ class ClassicSystemsTests(TestCase):
         self.assertEqual(get_profile(self.character).adventure_energy, 90)
         self.assertGreaterEqual(result["gold"], 7)
 
+    def test_adventure_recruits_colony_inhabitant(self):
+        colony = get_colony(self.character)
+        before = colony.inhabitants
+        adventure = AdventureTemplate.objects.create(
+            name="Recruit Route", description="test", energy_cost=10, xp_reward=5, gold_reward=7
+        )
+        ok, _ = complete_adventure(self.character, adventure)
+        self.assertTrue(ok)
+        colony.refresh_from_db()
+        self.assertEqual(colony.inhabitants, before + 1)
+
     def test_daily_reward_only_once(self):
         first, reward = claim_daily_reward(self.character)
         second, _ = claim_daily_reward(self.character)
@@ -60,6 +72,36 @@ class ClassicSystemsTests(TestCase):
 
     def test_stronghold_is_one_per_character(self):
         self.assertEqual(get_stronghold(self.character).pk, get_stronghold(self.character).pk)
+
+    def test_colony_upgrade_spends_gold_and_activates_bonus(self):
+        colony = get_colony(self.character)
+        colony.inhabitants = 20
+        colony.save(update_fields=["inhabitants"])
+        ok, quote = upgrade_colony(self.character, "training")
+        self.assertTrue(ok)
+        self.character.refresh_from_db()
+        colony.refresh_from_db()
+        self.assertEqual(colony.training_level, 1)
+        self.assertEqual(self.character.gold, 100 - quote["cost"])
+        self.assertEqual(colony_bonuses(self.character)["damage"], 1)
+
+    def test_colony_market_changes_sell_value(self):
+        item = Item.objects.create(name="Trade Test", shop_price=100)
+        colony = get_colony(self.character)
+        self.assertEqual(sell_value(self.character, item), 50)
+        colony.market_level = 2
+        colony.save(update_fields=["market_level"])
+        self.assertEqual(sell_value(self.character, item), 60)
+
+    def test_colony_passive_gold_uses_population_and_treasury(self):
+        colony = get_colony(self.character)
+        colony.inhabitants = 10
+        colony.treasury_level = 1
+        colony.last_gold_collected_at = timezone.now() - timedelta(hours=2, minutes=5)
+        colony.save()
+        amount, hours = pending_colony_gold(colony)
+        self.assertEqual(hours, 2)
+        self.assertEqual(amount, 8)
 
     def test_town_overview_renders_without_body_stylesheet(self):
         response = self.client.get("/town/")

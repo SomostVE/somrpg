@@ -24,9 +24,6 @@ class ClassicConfig(AppConfig):
         from django.utils import timezone as django_timezone
 
         from game.timekeeping import game_day_key
-        from . import services
+        from . import services, signals  # noqa: F401
 
-        # The classic layer already centralizes daily keys through timezone.localdate().
-        # Swap only its local module reference so all daily boards, shops, boss hits,
-        # fortune and login rewards reset together at 22:00 Europe/Paris.
         services.timezone = _GameTimezoneProxy(django_timezone, game_day_key)
