@@ -1,11 +1,5 @@
 (() => {
   const translations = {
-    "LV": "NV",
-    "HP": "PV",
-    "ATK": "ATQ",
-    "G": "OR",
-    "SUP": "RES",
-    "CRAFT": "ART.",
     "Weapon": "Arme",
     "Head": "Tête",
     "Body": "Torse",
@@ -252,7 +246,12 @@
     }
 
     translated = translated
-      .replace(/^LV\s+(\d+)/i, "NV $1")
+      .replace(/\bLV\b/gi, "NV")
+      .replace(/\bHP\b/gi, "PV")
+      .replace(/\bATK\b/gi, "ATQ")
+      .replace(/\bSUP\b/gi, "RES")
+      .replace(/\bG\b/g, "OR")
+      .replace(/\bCRAFT\b/gi, "ART.")
       .replace(/\bUNLOCK\s+F(\d+)\b/gi, "DÉBLOCAGE F$1")
       .replace(/\bQTY\s+(\d+)\b/gi, "QTÉ $1")
       .replace(/\bNEW\s+ON\s+THIS\s+FLOOR\b/gi, "NOUVEAU À CET ÉTAGE");
@@ -262,7 +261,7 @@
 
   function isDynamicTranslatable(core) {
     if (!core) return false;
-    if (/^LV\s+\d+/i.test(core) || /\bUNLOCK\s+F\d+\b/i.test(core) || /\bQTY\s+\d+\b/i.test(core)) return true;
+    if (/\b(LV|HP|ATK|SUP|CRAFT)\b/i.test(core) || /\bG\b/.test(core) || /\bUNLOCK\s+F\d+\b/i.test(core) || /\bQTY\s+\d+\b/i.test(core)) return true;
     const lower = core.toLowerCase();
     return entries.some(([key]) => lower.includes(key.toLowerCase()));
   }
