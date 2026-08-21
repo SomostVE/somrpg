@@ -1,1 +1,43 @@
-{% extends "game/base.html" %}{% block title %}Begin - SomRPG{% endblock %}{% block content %}<section class="hero panel"><p class="eyebrow">THE DUNGEON AWAITS</p><h1>Create your adventurer</h1><p>One character. One endless descent. Every floor is earned.</p><form method="post" class="stacked-form">{% csrf_token %}{{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}<button class="button primary" type="submit">Enter the dungeon</button></form></section>{% endblock %}
+{% extends "game/base.html" %}
+
+{% block title %}New Record - SomRPG{% endblock %}
+
+{% block standalone_content %}
+<section class="retro-window page-window">
+  <div class="window-title">ADVENTURER REGISTRATION</div>
+  <div class="page-body">
+    <p class="section-code">NEW RECORD // FLOOR 01</p>
+    <h1 class="page-title">Create your adventurer</h1>
+
+    <p class="story-text">
+      The terminal hums to life. A blank guild record waits for a name.
+      Beyond this screen lies a dungeon measured in floors, encounters and old reports.
+      There is no party waiting outside: this descent belongs to one adventurer.
+    </p>
+
+    <hr class="divider">
+
+    <form method="post" class="stacked-form">
+      {% csrf_token %}
+      {{ form.name.label_tag }}
+      {{ form.name }}
+      {{ form.name.errors }}
+      <button class="button primary" type="submit">&gt; Register and enter</button>
+    </form>
+
+    <p class="command-note">SAVE DATA IS STORED LOCALLY IN THE SOMRPG DATABASE.</p>
+  </div>
+</section>
+
+<section class="retro-window help-window">
+  <div class="window-title">SYSTEM INFORMATION</div>
+  <div class="page-body">
+    <ul class="text-list">
+      <li>One persistent adventurer record.</li>
+      <li>Floor-by-floor dungeon progression.</li>
+      <li>Automatic turn-based encounters with readable battle logs.</li>
+      <li>Experience, levels, gold, loot and equipment.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
