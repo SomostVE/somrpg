@@ -1,44 +1,32 @@
 {% extends "game/base.html" %}
 
-{% block title %}Character Record - SomRPG{% endblock %}
+{% block title %}Character - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title"><span class="lang-en">CHARACTER RECORD</span><span class="lang-fr">DOSSIER DU PERSONNAGE</span></div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">CHARACTER</span><span class="lang-fr">PERSONNAGE</span></div>
   <div class="page-body">
-    <p class="section-code">{{ character.get_archetype_display|upper }} // F{{ character.floor|stringformat:"02d" }}{% if tower_floor %} // {{ tower_floor.name|upper }}{% endif %}</p>
+    <p class="section-code">F{{ active_floor|stringformat:"02d" }} / MAX F{{ character.floor|stringformat:"02d" }}</p>
     <h1 class="page-title">{{ character.name }}</h1>
-
-    <p class="story-text">
-      <span class="lang-en">Your archetype, equipment slots and item affixes are included in effective combat values.</span>
-      <span class="lang-fr">Votre archétype, vos emplacements d'équipement et les affixes des objets sont inclus dans les valeurs de combat effectives.</span>
-    </p>
-
     <div class="data-grid">
-      <div class="data-row"><span>LEVEL</span><strong>{{ character.level }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">LEVEL</span><span class="lang-fr">NIVEAU</span></span><strong>{{ character.level }}</strong></div>
       <div class="data-row"><span>XP</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div>
-      <div class="data-row"><span>ARCHETYPE</span><strong>{{ character.get_archetype_display }}</strong></div>
-      <div class="data-row"><span>COMBAT HP</span><strong>{{ character.combat_max_hp }}</strong></div>
-      <div class="data-row"><span>BASE ATK</span><strong>{{ character.attack }}</strong></div>
-      <div class="data-row"><span>CLASS ATK</span><strong>+{{ character.class_attack_bonus }}</strong></div>
-      <div class="data-row"><span>GEAR ATK</span><strong>+{{ character.equipped_attack_bonus }}</strong></div>
-      <div class="data-row"><span>TOTAL ATK</span><strong>{{ character.total_attack }}</strong></div>
-      <div class="data-row"><span>BASE DEF</span><strong>{{ character.defense }}</strong></div>
-      <div class="data-row"><span>CLASS DEF</span><strong>+{{ character.class_defense_bonus }}</strong></div>
-      <div class="data-row"><span>GEAR DEF</span><strong>+{{ character.equipped_defense_bonus }}</strong></div>
-      <div class="data-row"><span>TOTAL DEF</span><strong>{{ character.total_defense }}</strong></div>
-      <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
-      <div class="data-row"><span>CURRENT FLOOR</span><strong>{{ character.floor }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">CLASS</span><span class="lang-fr">CLASSE</span></span><strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong></div>
+      <div class="data-row"><span>HP</span><strong>{{ character.combat_max_hp }}</strong></div>
+      <div class="data-row"><span>ATK</span><strong>{{ character.total_attack }}</strong></div>
+      <div class="data-row"><span>DEF</span><strong>{{ character.total_defense }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><strong>{{ character.gold }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">CRAFT XP</span><span class="lang-fr">XP ARTISANAT</span></span><strong>{{ character.crafting_xp }}</strong></div>
     </div>
   </div>
 </section>
 
 <section class="retro-window help-window">
-  <div class="window-title"><span class="lang-en">ARCHETYPE PROTOTYPES</span><span class="lang-fr">PROTOTYPES D'ARCHÉTYPES</span></div>
+  <div class="window-title"><span class="lang-en">CLASSES</span><span class="lang-fr">CLASSES</span></div>
   <div class="page-body class-grid">
-    <div class="class-card"><strong>VANGUARD</strong><span>+10 HP · +2 DEF</span></div>
-    <div class="class-card"><strong>STRIDER</strong><span>+2 ATK</span></div>
-    <div class="class-card"><strong>ARCANIST</strong><span>+3 ATK · -5 HP</span></div>
+    <div class="class-card"><strong><span class="lang-en">VANGUARD</span><span class="lang-fr">AVANT-GARDE</span></strong><span>+10 HP · +2 DEF</span></div>
+    <div class="class-card"><strong><span class="lang-en">STRIDER</span><span class="lang-fr">ÉCLAIREUR</span></strong><span>+2 ATK</span></div>
+    <div class="class-card"><strong><span class="lang-en">ARCANIST</span><span class="lang-fr">ARCANISTE</span></strong><span>+3 ATK · -5 HP</span></div>
   </div>
 </section>
 {% endblock %}
