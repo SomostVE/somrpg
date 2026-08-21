@@ -45,12 +45,34 @@ from .services import (
 )
 
 
+TOWN_SECTIONS = {
+    "overview",
+    "adventures",
+    "training",
+    "arena",
+    "market",
+    "smith",
+    "enchant",
+    "altar",
+    "companions",
+    "stronghold",
+    "guild",
+    "daily",
+    "events",
+}
+
+
 def _character(request):
     return get_character(request)
 
 
-def _back(section="top"):
-    return redirect(f"{reverse('classic:town')}#{section}")
+def _safe_section(section):
+    return section if section in TOWN_SECTIONS else "overview"
+
+
+def _back(section="overview"):
+    section = _safe_section(section)
+    return redirect(f"{reverse('classic:town')}?section={section}")
 
 
 def town(request):
@@ -58,6 +80,7 @@ def town(request):
     if not character:
         return redirect("create_character")
 
+    active_section = _safe_section(request.GET.get("section", "overview"))
     profile = get_profile(character)
     profile.refresh_energy()
     check_achievements(character)
@@ -82,6 +105,7 @@ def town(request):
     data = context(
         request,
         character,
+        active_section=active_section,
         classic_profile=profile,
         adventures=available_adventures(character),
         arena_opponents=arena_opponents(character),
@@ -115,11 +139,11 @@ def action(request):
         return redirect("create_character")
 
     action_name = request.POST.get("action", "")
-    section = request.POST.get("section", "top")
+    section = _safe_section(request.POST.get("section", "overview"))
 
     if character.guard_active and action_name not in {"daily_reward", "daily_tasks", "fortune"}:
         messages.warning(request, "End City Guard duty before using active town services.")
-        return _back("guard")
+        return _back("overview")
 
     if action_name == "adventure":
         from .models import AdventureTemplate

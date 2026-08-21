@@ -60,3 +60,20 @@ class ClassicSystemsTests(TestCase):
 
     def test_stronghold_is_one_per_character(self):
         self.assertEqual(get_stronghold(self.character).pk, get_stronghold(self.character).pk)
+
+    def test_town_overview_renders_without_body_stylesheet(self):
+        response = self.client.get("/town/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "VUE D'ENSEMBLE")
+        self.assertEqual(response.content.decode().count("classic/classic.css"), 1)
+
+    def test_town_section_query_renders_only_selected_service_panel(self):
+        response = self.client.get("/town/?section=stronghold")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "FORTERESSE")
+        self.assertNotContains(response, "VUE D'ENSEMBLE")
+
+    def test_invalid_town_section_falls_back_to_overview(self):
+        response = self.client.get("/town/?section=unknown")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "VUE D'ENSEMBLE")
