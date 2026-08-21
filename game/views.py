@@ -15,18 +15,29 @@ from .models import (
     CodexDiscovery,
     CraftingRecipe,
     DiscordProfile,
-    Enemy,
+    FloorShopOffer,
     InventoryItem,
     Item,
+    TowerFloor,
 )
+from .navigation import navigation_for
 from .services import (
     add_season_progress,
     build_standings,
     discover_enemy,
+    discover_floor,
     discover_item,
     get_active_season,
     get_season_progress,
     resolve_encounter,
+)
+from .tower import (
+    add_item,
+    available_shop_offers,
+    current_floor,
+    floor_encounter,
+    newly_unlocked_offers,
+    visible_tower_floors,
 )
 
 
@@ -47,11 +58,14 @@ def get_character(request):
 
 
 def context(request, character, **extra):
+    floor = current_floor(character) if character else None
     return {
         "character": character,
         "version": settings.SOMRPG_VERSION,
         "discord_configured": discord_configured(),
         "discord_profile": getattr(request.user, "discord_profile", None) if request.user.is_authenticated else None,
+        "navigation_sections": navigation_for(character) if character else [],
+        "tower_floor": floor,
         **extra,
     }
 
@@ -74,7 +88,18 @@ def home(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
-    return render(request, "game/home.html", context(request, character))
+    floor = current_floor(character)
+    discover_floor(character, floor)
+    return render(
+        request,
+        "game/home.html",
+        context(
+            request,
+            character,
+            new_shop_offers=newly_unlocked_offers(character),
+            floor_boss=getattr(floor, "boss_gate", None) if floor else None,
+        ),
+    )
 
 
 def create_character(request):
@@ -87,9 +112,10 @@ def create_character(request):
         if request.user.is_authenticated:
             character.user = request.user
         character.save()
+        discover_floor(character, current_floor(character))
         if request.user.is_authenticated:
             get_season_progress(character)
-        messages.success(request, "Your adventure begins on Floor 1.")
+        messages.success(request, "Your ascent begins on Floor 1.")
         return redirect("home")
 
     return render(request, "game/create_character.html", context(request, None, form=form))
@@ -102,15 +128,60 @@ def character_sheet(request):
     return render(request, "game/character.html", context(request, character))
 
 
+def tower_map(request):
+    character = get_character(request)
+    if not character:
+        return redirect("create_character")
+    floors = visible_tower_floors(character, future=2)
+    return render(request, "game/tower.html", context(request, character, floors=floors))
+
+
+def floor_shop(request):
+    character = get_character(request)
+    if not character:
+        return redirect("create_character")
+    offers = available_shop_offers(character)
+    return render(
+        request,
+        "game/shop.html",
+        context(
+            request,
+            character,
+            offers=offers,
+            new_offers=offers.filter(unlock_floor=character.floor),
+        ),
+    )
+
+
+@require_POST
+def buy_floor_shop_item(request, offer_id):
+    character = get_character(request)
+    if not character:
+        return redirect("create_character")
+    offer = get_object_or_404(
+        FloorShopOffer.objects.select_related("item"),
+        id=offer_id,
+        enabled=True,
+        unlock_floor__lte=character.floor,
+    )
+    if character.gold < offer.price:
+        messages.error(request, "Not enough gold for this item.")
+        return redirect("floor_shop")
+
+    character.gold -= offer.price
+    character.save(update_fields=["gold", "updated_at"])
+    entry, _ = add_item(character, offer.item, floor_number=character.floor)
+    discover_item(character, offer.item)
+    messages.success(request, f"Purchased {entry.display_name} for {offer.price} gold.")
+    return redirect("floor_shop")
+
+
 def inventory(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
-    return render(
-        request,
-        "game/inventory.html",
-        context(request, character, entries=character.inventory.select_related("item").all()),
-    )
+    entries = character.inventory.select_related("item").order_by("item__slot", "item__rarity", "item__name")
+    return render(request, "game/inventory.html", context(request, character, entries=entries))
 
 
 @require_POST
@@ -118,9 +189,18 @@ def toggle_equip(request, entry_id):
     character = get_character(request)
     if not character:
         return redirect("create_character")
-    entry = get_object_or_404(InventoryItem, id=entry_id, character=character)
-    entry.equipped = not entry.equipped
-    entry.save(update_fields=["equipped"])
+    entry = get_object_or_404(InventoryItem.objects.select_related("item"), id=entry_id, character=character)
+    if entry.item.slot in ("misc", "material"):
+        messages.warning(request, "This item is not equippable.")
+        return redirect("inventory")
+
+    if entry.equipped:
+        entry.equipped = False
+        entry.save(update_fields=["equipped"])
+    else:
+        character.inventory.filter(equipped=True, item__slot=entry.item.slot).exclude(pk=entry.pk).update(equipped=False)
+        entry.equipped = True
+        entry.save(update_fields=["equipped"])
     return redirect("inventory")
 
 
@@ -187,9 +267,11 @@ def explore(request):
         messages.warning(request, "End City Guard duty before returning to dungeon exploration.")
         return redirect("city_guard")
 
-    enemy = Enemy.objects.filter(enabled=True, floor_min__lte=character.floor).order_by("-floor_min", "id").first()
+    floor = current_floor(character)
+    discover_floor(character, floor)
+    enemy, is_boss = floor_encounter(character)
     if not enemy:
-        messages.warning(request, "No enemy is configured for this floor yet.")
+        messages.warning(request, "No encounter is configured for this floor yet.")
         return redirect("home")
 
     discover_enemy(character, enemy)
@@ -197,19 +279,26 @@ def explore(request):
     if request.method == "POST":
         result = resolve_encounter(character, enemy)
         if result.victory:
-            messages.success(request, f"{enemy.name} defeated.")
+            if is_boss:
+                messages.success(request, f"Boss defeated. Floor {character.floor} is now open.")
+            else:
+                messages.success(request, f"{enemy.name} defeated.")
         else:
             messages.error(request, f"{character.name} was defeated.")
         character.refresh_from_db()
 
-    return render(request, "game/explore.html", context(request, character, enemy=enemy, result=result))
+    return render(
+        request,
+        "game/explore.html",
+        context(request, character, enemy=enemy, result=result, encounter_floor=floor, is_boss=is_boss),
+    )
 
 
 def workshop(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
-    recipes = CraftingRecipe.objects.filter(enabled=True).select_related("output_item")
+    recipes = CraftingRecipe.objects.filter(enabled=True, output_item__unlock_floor__lte=character.floor).select_related("output_item")
     return render(request, "game/workshop.html", context(request, character, recipes=recipes))
 
 
@@ -222,7 +311,12 @@ def craft_recipe(request, recipe_id):
         messages.warning(request, "End City Guard duty before using the workshop.")
         return redirect("city_guard")
 
-    recipe = get_object_or_404(CraftingRecipe.objects.select_related("output_item"), id=recipe_id, enabled=True)
+    recipe = get_object_or_404(
+        CraftingRecipe.objects.select_related("output_item"),
+        id=recipe_id,
+        enabled=True,
+        output_item__unlock_floor__lte=character.floor,
+    )
     if character.guard_resources < recipe.supply_cost or character.gold < recipe.gold_cost:
         messages.error(request, "You do not have the resources required for this recipe.")
         return redirect("workshop")
@@ -232,15 +326,7 @@ def craft_recipe(request, recipe_id):
     character.crafting_xp += recipe.xp_reward
     character.save(update_fields=["guard_resources", "gold", "crafting_xp", "updated_at"])
 
-    inventory_item, created = InventoryItem.objects.get_or_create(
-        character=character,
-        item=recipe.output_item,
-        defaults={"quantity": recipe.output_quantity},
-    )
-    if not created:
-        inventory_item.quantity += recipe.output_quantity
-        inventory_item.save(update_fields=["quantity"])
-
+    add_item(character, recipe.output_item, quantity=recipe.output_quantity, floor_number=character.floor)
     add_season_progress(character, crafting=recipe.xp_reward)
     discover_item(character, recipe.output_item)
     messages.success(
@@ -255,11 +341,15 @@ def codex(request):
     if not character:
         return redirect("create_character")
 
+    enemy_total = character.codex_discoveries.model.objects.model.Enemy.objects.filter(enabled=True).count() if False else None
+    from .models import Enemy
     enemy_total = Enemy.objects.filter(enabled=True).count()
     item_total = Item.objects.count()
+    floor_total = TowerFloor.objects.count()
     discoveries = CodexDiscovery.objects.filter(character=character)
     enemy_entries = discoveries.filter(entry_type="enemy")
     item_entries = discoveries.filter(entry_type="item")
+    floor_entries = discoveries.filter(entry_type="floor")
     return render(
         request,
         "game/codex.html",
@@ -268,9 +358,11 @@ def codex(request):
             character,
             enemy_entries=enemy_entries,
             item_entries=item_entries,
+            floor_entries=floor_entries,
             enemy_total=enemy_total,
             item_total=item_total,
-            total_entries=enemy_total + item_total,
+            floor_total=floor_total,
+            total_entries=enemy_total + item_total + floor_total,
             discovered_entries=discoveries.count(),
             completion=character.codex_completion,
         ),
@@ -375,7 +467,6 @@ def discord_callback(request):
 
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
-    # Preserve the original local save on the first Discord connection only.
     if not Character.objects.filter(user=user).exists():
         owned_exists = Character.objects.filter(user__isnull=False).exists()
         unowned = Character.objects.filter(user__isnull=True)
