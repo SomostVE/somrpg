@@ -28,15 +28,26 @@ def floor_encounter(character, floor_number=None):
     number = floor_number or character.floor
     floor = tower_floor(number)
 
-    # Boss gates only block progression on the highest unlocked floor.
-    # Returning to an already-cleared boss floor gives its normal encounter pool.
+    # A boss only blocks the current progression frontier. Once a higher floor
+    # is unlocked, returning to that boss floor becomes a normal replay visit.
     if floor and number == character.floor and hasattr(floor, "boss_gate"):
         return floor.boss_gate.enemy, True
 
     qs = Enemy.objects.filter(enabled=True, is_boss=False, floor_min__lte=number).filter(
         Q(floor_max__isnull=True) | Q(floor_max__gte=number)
     )
-    return qs.order_by("-floor_min", "id").first(), False
+    enemy = qs.order_by("-floor_min", "id").first()
+
+    # Boss-only floors may have no regular enemy explicitly assigned. Replays
+    # fall back to the nearest earlier non-boss encounter rather than becoming
+    # inaccessible after the boss has been cleared.
+    if enemy is None:
+        enemy = (
+            Enemy.objects.filter(enabled=True, is_boss=False, floor_min__lte=number)
+            .order_by("-floor_min", "id")
+            .first()
+        )
+    return enemy, False
 
 
 def available_shop_offers(character, floor_number=None):
