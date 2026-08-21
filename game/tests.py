@@ -1,9 +1,11 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
+
+from classic.models import AdventureTemplate
 
 from .models import Character, CommunitySeason, DiscordProfile, FloorShopOffer, InventoryItem, SeasonProgress, TowerFloor
 from .navigation import navigation_for
@@ -104,6 +106,7 @@ class TowerProgressionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Hunter Dagger")
         self.assertNotContains(response, "Skybreaker Saber")
+        self.assertContains(response, "S03")
 
     def test_equipping_same_slot_replaces_previous_item(self):
         character = Character.objects.create(name="Gear Tester", floor=10)
@@ -123,7 +126,7 @@ class TowerProgressionTests(TestCase):
         self.assertGreater(vanguard.combat_max_hp, strider.combat_max_hp)
         self.assertGreater(arcanist.total_attack, vanguard.total_attack)
 
-    def test_navigation_uses_profile_colony_and_archives_order(self):
+    def test_navigation_uses_profile_colony_quests_and_archives_order(self):
         early = Character.objects.create(name="Early", floor=1)
         advanced = Character.objects.create(name="Advanced", floor=5)
         early_sections = navigation_for(early)
@@ -131,6 +134,7 @@ class TowerProgressionTests(TestCase):
         early_codes = {entry["code"] for section in early_sections for entry in section["entries"]}
         advanced_codes = {entry["code"] for section in advanced_sections for entry in section["entries"]}
         self.assertIn("profile", early_codes)
+        self.assertIn("quests", early_codes)
         self.assertNotIn("character", early_codes)
         self.assertNotIn("inventory", early_codes)
         self.assertNotIn("codex", early_codes)
@@ -142,7 +146,7 @@ class TowerProgressionTests(TestCase):
         archive = advanced_sections[-1]["entries"][0]
         self.assertEqual(archive["label_fr"], "Archives")
 
-    def test_visual_map_shows_full_tower_with_locked_future_floors(self):
+    def test_visual_map_shows_full_tower_with_locked_future_sectors(self):
         Character.objects.create(name="Cartographer", floor=2)
         response = self.client.get("/tower/")
         self.assertEqual(response.status_code, 200)
@@ -150,12 +154,16 @@ class TowerProgressionTests(TestCase):
         self.assertContains(response, "Skybreaker Citadel")
         self.assertContains(response, "VERROUILLÉ")
         self.assertContains(response, "images/biomes/")
+        self.assertContains(response, "S01")
+        self.assertContains(response, "SECTEURS")
 
-    def test_camp_has_floor_artwork(self):
+    def test_camp_has_floor_artwork_and_sector_code(self):
         Character.objects.create(name="Sightseer", floor=1)
         response = self.client.get("/")
         self.assertContains(response, "floor-art-hero")
         self.assertContains(response, "images/biomes/plains.svg")
+        self.assertContains(response, "S01")
+        self.assertContains(response, "SECTEUR")
 
 
 class ProfileAndColonyTests(TestCase):
@@ -169,6 +177,7 @@ class ProfileAndColonyTests(TestCase):
         self.assertContains(response, "INVENTAIRE")
         self.assertContains(response, "CODEX")
         self.assertContains(response, offer.item.name)
+        self.assertContains(response, "S03")
 
     def test_legacy_player_pages_render_unified_profile(self):
         Character.objects.create(name="Legacy Profile")
@@ -189,9 +198,44 @@ class ProfileAndColonyTests(TestCase):
         self.assertContains(response, "HABITANTS")
         self.assertContains(response, "images/biomes/settlement.svg")
 
+    def test_local_colony_income_collection_is_atomic_and_does_not_crash(self):
+        character = Character.objects.create(name="Collector", floor=2, gold=10)
+        colony = character.colony
+        colony.inhabitants = 10
+        colony.last_gold_collected_at = timezone.now() - timedelta(hours=2, minutes=5)
+        colony.save(update_fields=["inhabitants", "last_gold_collected_at"])
+        response = self.client.post("/colony/collect/")
+        self.assertEqual(response.status_code, 302)
+        character.refresh_from_db()
+        colony.refresh_from_db()
+        self.assertEqual(character.gold, 14)
+        self.assertGreater(colony.last_gold_collected_at, timezone.now() - timedelta(minutes=10))
+
+
+class QuestTests(TestCase):
+    def test_quest_board_renders_available_quests(self):
+        Character.objects.create(name="Quest Hero", floor=2)
+        response = self.client.get("/quests/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "QUESTS")
+        self.assertContains(response, "QUÊTES")
+        self.assertContains(response, "S02")
+        self.assertTrue(AdventureTemplate.objects.filter(enabled=True).exists())
+
+    def test_quest_completion_spends_energy_and_recruits_inhabitant(self):
+        character = Character.objects.create(name="Quest Runner", floor=2)
+        quest = AdventureTemplate.objects.filter(enabled=True).first()
+        before_population = character.colony.inhabitants
+        response = self.client.post(f"/quests/{quest.id}/complete/")
+        self.assertEqual(response.status_code, 302)
+        character.colony.refresh_from_db()
+        self.assertEqual(character.colony.inhabitants, before_population + 1)
+        result = self.client.session.get("quest_result")
+        self.assertEqual(result["status"], "success")
+
 
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_v010_assets_and_dynamic_menu(self):
+    def test_base_layout_exposes_v0102_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -199,12 +243,16 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, 'data-language="en"')
         self.assertContains(response, "css/v090-visual.css")
         self.assertContains(response, "css/v010-colony-profile.css")
+        self.assertContains(response, "css/v0102-quests.css")
         self.assertContains(response, "classic/classic.css")
-        self.assertContains(response, "?v=0.10.1")
-        self.assertContains(response, "VER <span id=\"version-label\">0.10.1</span>", html=False)
+        self.assertContains(response, "?v=0.10.2")
+        self.assertContains(response, "VER <span id=\"version-label\">0.10.2</span>", html=False)
         self.assertContains(response, "menu-entry-profile")
-        self.assertContains(response, '<span class="menu-glyph lang-fr">C</span>', html=False)
+        self.assertContains(response, "menu-entry-quests")
+        self.assertContains(response, 'class="menu-glyph lang-fr" data-glyph="C"', html=False)
         self.assertContains(response, '<span class="lang-fr">amp</span>', html=False)
+        self.assertContains(response, 'class="menu-glyph lang-fr" data-glyph="G"', html=False)
+        self.assertNotContains(response, '>OR</span><span class="lang-fr">arde de la ville', html=False)
         self.assertContains(response, "quick-stats")
 
     def test_tower_screen_has_french_and_english_travel_labels(self):
@@ -213,6 +261,8 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, "TRAVEL")
         self.assertContains(response, "ALLER")
         self.assertContains(response, "CARTE DE LA TOUR")
+        self.assertContains(response, "SECTORS")
+        self.assertContains(response, "SECTEURS")
 
     def test_authenticated_layout_contains_live_chat(self):
         user = User.objects.create_user(username="chat_user")
@@ -242,13 +292,15 @@ class ContentIndexTests(TestCase):
         self.assertContains(response, "Missing Courier")
         self.assertContains(response, "No NPC model exists yet.")
         self.assertContains(response, "Aucun PNJ n'est encore défini")
+        self.assertContains(response, "SECTEURS / LIEUX")
+        self.assertContains(response, "QUÊTES")
 
 
 class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.10.1")
+        self.assertEqual(response.json()["version"], "0.10.2")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 

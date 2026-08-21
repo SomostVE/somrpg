@@ -14,7 +14,7 @@
     </p>
 
     <div class="coefficient-grid">
-      <div><span>DUNGEON</span><strong>×1</strong><small>Floors cleared</small></div>
+      <div><span>DUNGEON</span><strong>×1</strong><small><span class="lang-en">Sectors cleared</span><span class="lang-fr">Secteurs terminés</span></small></div>
       <div><span>COMMERCE</span><strong>×2</strong><small>Total gold earned</small></div>
       <div><span>CRAFTING</span><strong>×2</strong><small>Crafting XP earned</small></div>
       <div><span>CODEX</span><strong>×0.5</strong><small>Discovery completion</small></div>
@@ -72,7 +72,7 @@
           <td>#{{ row.global_rank }}</td>
           <td><strong>{{ row.display_name }}</strong><small>{{ row.character.name }}</small></td>
           <td><strong>{{ row.global_score|floatformat:2 }}</strong></td>
-          <td>#{{ row.dungeon_rank }}<small>{{ row.dungeon_value }} clears / {{ row.dungeon_score|floatformat:1 }} pts</small></td>
+          <td>#{{ row.dungeon_rank }}<small>{{ row.dungeon_value }} <span class="lang-en">sectors</span><span class="lang-fr">secteurs</span> / {{ row.dungeon_score|floatformat:1 }} pts</small></td>
           <td>#{{ row.commerce_rank }}<small>{{ row.commerce_value }} gold / {{ row.commerce_score|floatformat:1 }} pts</small></td>
           <td>#{{ row.crafting_rank }}<small>{{ row.crafting_value }} XP / {{ row.crafting_score|floatformat:1 }} pts</small></td>
           <td>#{{ row.codex_rank }}<small>{{ row.codex_value|floatformat:1 }}% / {{ row.codex_score|floatformat:1 }} pts</small></td>

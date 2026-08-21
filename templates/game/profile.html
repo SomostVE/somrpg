@@ -14,7 +14,7 @@
   <div id="character" class="profile-section profile-character">
     <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
     <div class="profile-identity">
-      <p class="section-code">F{{ active_floor|stringformat:"02d" }} / MAX F{{ character.floor|stringformat:"02d" }}</p>
+      <p class="section-code">S{{ active_floor|stringformat:"02d" }} / MAX S{{ character.floor|stringformat:"02d" }}</p>
       <h1>{{ character.name }}</h1>
       <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
     </div>
@@ -42,7 +42,7 @@
         {% if entry.equipped %}<em><span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span></em>{% endif %}
       </div>
       <strong>{{ entry.display_name }}</strong>
-      <small>×{{ entry.quantity }} · F{{ entry.item.unlock_floor }}{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · ATQ +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · DEF +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small>
+      <small>×{{ entry.quantity }} · S{{ entry.item.unlock_floor }}{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · ATQ +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · DEF +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small>
       <div class="profile-item-actions">
         {% if entry.item.slot != "misc" and entry.item.slot != "material" %}
         <form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>
@@ -60,14 +60,14 @@
 <section id="codex" class="retro-window profile-panel">
   <div class="window-title">CODEX · {{ completion|floatformat:1 }}%</div>
   <div class="profile-codex-summary">
-    <span><b><span class="lang-en">FLOORS</span><span class="lang-fr">ÉTAGES</span></b>{{ floor_entries|length }}/{{ floor_total }}</span>
+    <span><b><span class="lang-en">SECTORS</span><span class="lang-fr">SECTEURS</span></b>{{ floor_entries|length }}/{{ floor_total }}</span>
     <span><b><span class="lang-en">ENEMIES</span><span class="lang-fr">ENNEMIS</span></b>{{ enemy_entries|length }}/{{ enemy_total }}</span>
     <span><b><span class="lang-en">ITEMS</span><span class="lang-fr">OBJETS</span></b>{{ item_entries|length }}/{{ item_total }}</span>
     <span><b><span class="lang-en">FOUND</span><span class="lang-fr">TROUVÉ</span></b>{{ discovered_entries }}</span>
   </div>
   <div class="codex-meter"><div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div></div>
   <div class="profile-codex-columns">
-    <div><h3><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></h3>{% for entry in floor_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
+    <div><h3><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></h3>{% for entry in floor_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
     <div><h3><span class="lang-en">Bestiary</span><span class="lang-fr">Bestiaire</span></h3>{% for entry in enemy_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
     <div><h3><span class="lang-en">Items</span><span class="lang-fr">Objets</span></h3>{% for entry in item_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
   </div>
