@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, timezone as datetime_timezone
 from zoneinfo import ZoneInfo
 
 from django.utils import timezone
@@ -11,7 +11,7 @@ RESET_HOUR = 22
 def paris_now(now=None):
     current = now or timezone.now()
     if timezone.is_naive(current):
-        current = timezone.make_aware(current, timezone.utc)
+        current = current.replace(tzinfo=datetime_timezone.utc)
     return current.astimezone(PARIS_TZ)
 
 
