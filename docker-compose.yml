@@ -7,7 +7,10 @@ services:
       - "8000:8000"
     environment:
       DJANGO_DEBUG: "0"
-      DJANGO_ALLOWED_HOSTS: "localhost,127.0.0.1"
+      DJANGO_ALLOWED_HOSTS: "${DJANGO_ALLOWED_HOSTS:-localhost,127.0.0.1}"
       SOMRPG_DATA_DIR: "/app/data"
+      DISCORD_CLIENT_ID: "${DISCORD_CLIENT_ID:-}"
+      DISCORD_CLIENT_SECRET: "${DISCORD_CLIENT_SECRET:-}"
+      DISCORD_REDIRECT_URI: "${DISCORD_REDIRECT_URI:-}"
     volumes:
       - ./data:/app/data
