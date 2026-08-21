@@ -7,17 +7,17 @@
   <div class="window-title">CODEX</div>
   <div class="page-body">
     <p class="section-code">PASSIVE DISCOVERY // RANKING COEFFICIENT ×0.5</p>
-    <h1 class="page-title">Archive Completion</h1>
+    <h1 class="page-title"><span class="lang-en">Archive Completion</span><span class="lang-fr">Progression des archives</span></h1>
     <p class="story-text">
-      The Codex fills itself while you play. Encounter enemies, recover loot, and craft new items; no separate grind is required.
+      <span class="lang-en">The Codex now records floors as well as enemies and items. Reaching a new floor discovers it automatically.</span>
+      <span class="lang-fr">Le Codex enregistre maintenant les étages en plus des ennemis et objets. Atteindre un nouvel étage le découvre automatiquement.</span>
     </p>
 
-    <div class="codex-meter" aria-label="Codex completion">
-      <div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div>
-    </div>
+    <div class="codex-meter" aria-label="Codex completion"><div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div></div>
     <div class="data-grid">
       <div class="data-row"><span>COMPLETION</span><strong>{{ completion|floatformat:1 }}%</strong></div>
       <div class="data-row"><span>DISCOVERED</span><strong>{{ discovered_entries }} / {{ total_entries }}</strong></div>
+      <div class="data-row"><span>FLOORS</span><strong>{{ floor_entries|length }} / {{ floor_total }}</strong></div>
       <div class="data-row"><span>ENEMIES</span><strong>{{ enemy_entries|length }} / {{ enemy_total }}</strong></div>
       <div class="data-row"><span>ITEMS</span><strong>{{ item_entries|length }} / {{ item_total }}</strong></div>
     </div>
@@ -26,24 +26,23 @@
 
 <div class="codex-columns">
   <section class="retro-window page-window">
-    <div class="window-title">BESTIARY</div>
+    <div class="window-title"><span class="lang-en">FLOOR ARCHIVE</span><span class="lang-fr">ARCHIVES DES ÉTAGES</span></div>
     <div class="page-body codex-list">
-      {% for entry in enemy_entries %}
-        <div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>
-      {% empty %}
-        <p class="empty-text">No enemy has been catalogued yet.</p>
-      {% endfor %}
+      {% for entry in floor_entries %}<div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>{% empty %}<p class="empty-text"><span class="lang-en">No floor has been catalogued yet.</span><span class="lang-fr">Aucun étage n'a encore été catalogué.</span></p>{% endfor %}
     </div>
   </section>
 
   <section class="retro-window page-window">
-    <div class="window-title">ITEM ARCHIVE</div>
+    <div class="window-title">BESTIARY</div>
     <div class="page-body codex-list">
-      {% for entry in item_entries %}
-        <div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>
-      {% empty %}
-        <p class="empty-text">No item has been catalogued yet.</p>
-      {% endfor %}
+      {% for entry in enemy_entries %}<div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>{% empty %}<p class="empty-text"><span class="lang-en">No enemy has been catalogued yet.</span><span class="lang-fr">Aucun ennemi n'a encore été catalogué.</span></p>{% endfor %}
+    </div>
+  </section>
+
+  <section class="retro-window page-window">
+    <div class="window-title"><span class="lang-en">ITEM ARCHIVE</span><span class="lang-fr">ARCHIVES DES OBJETS</span></div>
+    <div class="page-body codex-list">
+      {% for entry in item_entries %}<div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>{% empty %}<p class="empty-text"><span class="lang-en">No item has been catalogued yet.</span><span class="lang-fr">Aucun objet n'a encore été catalogué.</span></p>{% endfor %}
     </div>
   </section>
 </div>
