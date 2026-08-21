@@ -32,6 +32,7 @@ class CombatResult:
     gold: int = 0
     loot_name: str | None = None
     levels_gained: int = 0
+    unlocked_floor: int | None = None
 
 
 def get_active_season():
@@ -98,10 +99,11 @@ def discover_floor(character: Character, floor: TowerFloor | None):
     return discover(character, "floor", floor.floor_number, f"Floor {floor.floor_number} — {floor.name}")
 
 
-def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
+def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> CombatResult:
     from classic.services import classic_combat_bonus
 
-    defeated_floor = character.floor
+    defeated_floor = floor_number or character.floor
+    frontier_clear = defeated_floor == character.floor
     extra_attack, extra_defense = classic_combat_bonus(character)
     player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
     rounds = []
@@ -131,9 +133,16 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
     character.gold += gold
     character.total_gold_earned += gold
     character.dungeon_clears += 1
-    character.floor += 1
+
+    unlocked_floor = None
+    if frontier_clear:
+        next_floor = TowerFloor.objects.filter(floor_number__gt=defeated_floor).order_by("floor_number").first()
+        if next_floor:
+            character.floor = next_floor.floor_number
+            unlocked_floor = next_floor.floor_number
+
     character.save()
-    add_season_progress(character, dungeon=1, commerce=gold)
+    add_season_progress(character, dungeon=1 if unlocked_floor else 0, commerce=gold)
 
     loot_name = None
     if enemy.loot and random.randint(1, 100) <= enemy.loot_chance:
@@ -141,14 +150,24 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
         discover_item(character, enemy.loot)
         loot_name = entry.display_name
 
-    discover_floor(character, TowerFloor.objects.filter(floor_number=character.floor).first())
+    if unlocked_floor:
+        discover_floor(character, TowerFloor.objects.filter(floor_number=unlocked_floor).first())
 
     from classic.services import check_achievements, record_daily
 
     record_daily(character, dungeon_clears=1)
     check_achievements(character)
 
-    return CombatResult(True, enemy, rounds, xp_reward, gold, loot_name, levels)
+    return CombatResult(
+        True,
+        enemy,
+        rounds,
+        xp=xp_reward,
+        gold=gold,
+        loot_name=loot_name,
+        levels_gained=levels,
+        unlocked_floor=unlocked_floor,
+    )
 
 
 def _normalized(value, maximum):
