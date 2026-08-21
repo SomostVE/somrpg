@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "game",
-    "classic.apps.ClassicConfig",
+    "classic",
 ]
 
 MIDDLEWARE = [
@@ -85,4 +85,4 @@ DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "").strip()
 DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SOMRPG_VERSION = "0.10.0"
+SOMRPG_VERSION = "0.10.1"
