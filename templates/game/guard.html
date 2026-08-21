@@ -1,0 +1,70 @@
+{% extends "game/base.html" %}
+
+{% block title %}City Guard - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">CITY GUARD / WESTERN GATE</div>
+  <div class="page-body">
+    <p class="section-code">AFK SERVICE // {% if character.guard_started_at %}ON DUTY{% else %}AVAILABLE{% endif %}</p>
+    <h1 class="page-title">City Guard</h1>
+
+    {% if character.guard_started_at %}
+      <p class="story-text">
+        {{ character.name }} is currently assigned to the city watch. There is no selected duration and no deadline:
+        the shift continues until you decide to end it.
+      </p>
+
+      <hr class="divider">
+
+      <div class="data-grid">
+        <div class="data-row"><span>CURRENT SHIFT</span><strong>{{ current_shift_duration }}</strong></div>
+        <div class="data-row"><span>GOLD IF ENDED NOW</span><strong>+{{ pending_gold }}</strong></div>
+        <div class="data-row"><span>SUPPLIES IF ENDED NOW</span><strong>+{{ pending_resources }}</strong></div>
+        <div class="data-row"><span>LIFETIME SERVICE</span><strong>{{ total_guard_duration }}</strong></div>
+      </div>
+
+      <form method="post" action="{% url 'guard_stop' %}" class="action-row">
+        {% csrf_token %}
+        <button class="button primary" type="submit">&gt; End guard duty and collect</button>
+      </form>
+
+      <p class="command-note">UNFINISHED REWARD PROGRESS IS KEPT FOR YOUR NEXT SHIFT. NO AFK TIME IS LOST.</p>
+    {% else %}
+      <p class="story-text">
+        The city always needs another pair of eyes on the walls. Start a shift before leaving the game and return whenever you want.
+        Guard duty produces a small amount of gold and common supplies while you are away.
+      </p>
+
+      <hr class="divider">
+
+      <div class="data-grid">
+        <div class="data-row"><span>GOLD RATE</span><strong>1 / 10 min</strong></div>
+        <div class="data-row"><span>SUPPLY RATE</span><strong>1 / 30 min</strong></div>
+        <div class="data-row"><span>SUPPLIES OWNED</span><strong>{{ character.guard_resources }}</strong></div>
+        <div class="data-row"><span>SHIFTS COMPLETED</span><strong>{{ character.guard_shifts_completed }}</strong></div>
+        <div class="data-row"><span>LIFETIME SERVICE</span><strong>{{ total_guard_duration }}</strong></div>
+      </div>
+
+      <form method="post" action="{% url 'guard_start' %}" class="action-row">
+        {% csrf_token %}
+        <button class="button primary" type="submit">&gt; Begin guard duty</button>
+      </form>
+
+      <p class="command-note">NO DURATION TO CHOOSE. START NOW, STOP WHENEVER YOU RETURN.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="retro-window help-window">
+  <div class="window-title">SERVICE NOTES</div>
+  <div class="page-body">
+    <ul class="text-list">
+      <li>Guard duty is intended for time when you are not actively playing.</li>
+      <li>Dungeon exploration is unavailable while a guard shift is active.</li>
+      <li>Stopping early never deletes partial progress toward the next reward.</li>
+      <li>Supplies are a generic resource for now and can later feed crafting and city systems.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
