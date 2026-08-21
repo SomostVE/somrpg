@@ -123,11 +123,12 @@ class TowerProgressionTests(TestCase):
         self.assertGreater(vanguard.combat_max_hp, strider.combat_max_hp)
         self.assertGreater(arcanist.total_attack, vanguard.total_attack)
 
-    def test_navigation_unlocks_services_by_highest_floor(self):
+    def test_navigation_unlocks_services_and_always_exposes_index(self):
         early = Character.objects.create(name="Early", floor=1)
         advanced = Character.objects.create(name="Advanced", floor=5)
         early_codes = {entry["code"] for section in navigation_for(early) for entry in section["entries"]}
         advanced_codes = {entry["code"] for section in navigation_for(advanced) for entry in section["entries"]}
+        self.assertIn("index", early_codes)
         self.assertNotIn("guard", early_codes)
         self.assertNotIn("town", early_codes)
         self.assertIn("guard", advanced_codes)
@@ -135,17 +136,17 @@ class TowerProgressionTests(TestCase):
 
 
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_language_switcher_versioned_assets_and_dynamic_menu(self):
+    def test_base_layout_exposes_v080_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-language="fr"')
         self.assertContains(response, 'data-language="en"')
-        self.assertContains(response, "css/v071-floor-nav.css")
-        self.assertContains(response, "js/i18n-v071.js")
-        self.assertContains(response, "?v=0.7.1")
-        self.assertContains(response, "VER <span id=\"version-label\">0.7.1</span>", html=False)
-        self.assertContains(response, "menu-entry-tower")
+        self.assertContains(response, "css/v080-compact.css")
+        self.assertContains(response, "js/i18n-content-v080.js")
+        self.assertContains(response, "?v=0.8.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.8.0</span>", html=False)
+        self.assertContains(response, "menu-entry-index")
         self.assertContains(response, "quick-stats")
 
     def test_tower_screen_has_french_and_english_travel_labels(self):
@@ -163,12 +164,33 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, 'id="live-chat-messages"')
         self.assertContains(response, 'id="live-chat-form"')
 
+    def test_local_mode_keeps_chat_column_visible_but_locked(self):
+        Character.objects.create(name="Local Chat Hero")
+        response = self.client.get("/")
+        self.assertContains(response, 'class="chat-rail"')
+        self.assertContains(response, "CHAT LOCKED")
+        self.assertContains(response, "CHAT VERROUILLÉ")
+        self.assertNotContains(response, 'id="live-chat-form"')
+
+
+class ContentIndexTests(TestCase):
+    def test_index_lists_current_world_content_and_empty_npc_category(self):
+        Character.objects.create(name="Indexer", floor=5)
+        response = self.client.get("/index/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Dungeon Slime")
+        self.assertContains(response, "Bronze Arming Sword")
+        self.assertContains(response, "Dawn Gate")
+        self.assertContains(response, "Missing Courier")
+        self.assertContains(response, "No NPC model exists yet.")
+        self.assertContains(response, "Aucun PNJ n'est encore défini")
+
 
 class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.7.1")
+        self.assertEqual(response.json()["version"], "0.8.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
