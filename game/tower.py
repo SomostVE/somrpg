@@ -20,27 +20,33 @@ def tower_floor(number):
     return TowerFloor.objects.filter(floor_number=number).first()
 
 
-def current_floor(character):
-    return tower_floor(character.floor)
+def current_floor(character, floor_number=None):
+    return tower_floor(floor_number or character.floor)
 
 
-def floor_encounter(character):
-    floor = current_floor(character)
-    if floor and hasattr(floor, "boss_gate"):
+def floor_encounter(character, floor_number=None):
+    number = floor_number or character.floor
+    floor = tower_floor(number)
+
+    # Boss gates only block progression on the highest unlocked floor.
+    # Returning to an already-cleared boss floor gives its normal encounter pool.
+    if floor and number == character.floor and hasattr(floor, "boss_gate"):
         return floor.boss_gate.enemy, True
 
-    qs = Enemy.objects.filter(enabled=True, is_boss=False, floor_min__lte=character.floor).filter(
-        Q(floor_max__isnull=True) | Q(floor_max__gte=character.floor)
+    qs = Enemy.objects.filter(enabled=True, is_boss=False, floor_min__lte=number).filter(
+        Q(floor_max__isnull=True) | Q(floor_max__gte=number)
     )
     return qs.order_by("-floor_min", "id").first(), False
 
 
-def available_shop_offers(character):
-    return FloorShopOffer.objects.filter(enabled=True, unlock_floor__lte=character.floor).select_related("item")
+def available_shop_offers(character, floor_number=None):
+    number = floor_number or character.floor
+    return FloorShopOffer.objects.filter(enabled=True, unlock_floor__lte=number).select_related("item")
 
 
-def newly_unlocked_offers(character):
-    return FloorShopOffer.objects.filter(enabled=True, unlock_floor=character.floor).select_related("item")
+def newly_unlocked_offers(character, floor_number=None):
+    number = floor_number or character.floor
+    return FloorShopOffer.objects.filter(enabled=True, unlock_floor=number).select_related("item")
 
 
 def roll_affix(entry: InventoryItem, floor_number: int, force=False):
