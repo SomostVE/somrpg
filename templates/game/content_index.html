@@ -11,7 +11,7 @@
         <h1 class="page-title"><span class="lang-en">World database</span><span class="lang-fr">Base de données du monde</span></h1>
         <p class="story-text"><span class="lang-en">Current configured game content.</span><span class="lang-fr">Contenu actuellement configuré dans le jeu.</span></p>
       </div>
-      <input id="index-search" class="index-search" type="search" placeholder="Search / Rechercher" autocomplete="off">
+      <input id="index-search" class="index-search" type="search" placeholder="Search" autocomplete="off">
     </div>
     <div class="index-summary">
       <span><span class="lang-en">Enemies</span><span class="lang-fr">Ennemis</span> <strong>{{ enemies|length }}</strong></span>
@@ -50,7 +50,7 @@
       <thead><tr><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th><span class="lang-en">Type</span><span class="lang-fr">Type</span></th><th><span class="lang-en">Rarity</span><span class="lang-fr">Rareté</span></th><th>ATQ</th><th>DEF</th><th><span class="lang-en">Unlock</span><span class="lang-fr">Déblocage</span></th><th><span class="lang-en">Price</span><span class="lang-fr">Prix</span></th></tr></thead>
       <tbody>
       {% for item in items %}
-        <tr class="index-row"><td title="{{ item.description }}">{{ item.name }}</td><td>{{ item.get_slot_display }}</td><td>{{ item.get_rarity_display }}</td><td>+{{ item.attack_bonus }}</td><td>+{{ item.defense_bonus }}</td><td>F{{ item.unlock_floor }}</td><td>{% if item.shop_enabled %}{{ item.shop_price }} G{% else %}-{% endif %}</td></tr>
+        <tr class="index-row"><td>{{ item.name }}</td><td>{{ item.get_slot_display }}</td><td>{{ item.get_rarity_display }}</td><td>+{{ item.attack_bonus }}</td><td>+{{ item.defense_bonus }}</td><td>F{{ item.unlock_floor }}</td><td>{% if item.shop_enabled %}{{ item.shop_price }} G{% else %}-{% endif %}</td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -64,7 +64,7 @@
       <thead><tr><th><span class="lang-en">Floor</span><span class="lang-fr">Étage</span></th><th><span class="lang-en">Location</span><span class="lang-fr">Lieu</span></th><th><span class="lang-en">Biome</span><span class="lang-fr">Biome</span></th><th><span class="lang-en">Shop</span><span class="lang-fr">Boutique</span></th><th>Boss</th></tr></thead>
       <tbody>
       {% for floor in floors %}
-        <tr class="index-row"><td>F{{ floor.floor_number|stringformat:"02d" }}</td><td title="{{ floor.description }}">{{ floor.name }}</td><td>{{ floor.biome }}</td><td>{{ floor.shop_name }}</td><td>{% if floor.has_boss %}{{ floor.boss_gate.enemy.name }}{% else %}-{% endif %}</td></tr>
+        <tr class="index-row"><td>F{{ floor.floor_number|stringformat:"02d" }}</td><td>{{ floor.name }}</td><td>{{ floor.biome }}</td><td>{{ floor.shop_name }}</td><td>{% if floor.has_boss %}{{ floor.boss_gate.enemy.name }}{% else %}-{% endif %}</td></tr>
       {% endfor %}
       </tbody>
     </table>
@@ -88,14 +88,14 @@
 <details class="index-section">
   <summary><span class="lang-en">CRAFTING RECIPES</span><span class="lang-fr">RECETTES D'ARTISANAT</span> · {{ recipes|length }}</summary>
   <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Recipe</span><span class="lang-fr">Recette</span></th><th><span class="lang-en">Output</span><span class="lang-fr">Produit</span></th><th><span class="lang-en">Supplies</span><span class="lang-fr">Ressources</span></th><th><span class="lang-en">Gold</span><span class="lang-fr">Or</span></th><th>XP</th></tr></thead><tbody>
-    {% for recipe in recipes %}<tr class="index-row"><td title="{{ recipe.description }}">{{ recipe.name }}</td><td>{{ recipe.output_quantity }}× {{ recipe.output_item.name }}</td><td>{{ recipe.supply_cost }}</td><td>{{ recipe.gold_cost }}</td><td>{{ recipe.xp_reward }}</td></tr>{% endfor %}
+    {% for recipe in recipes %}<tr class="index-row"><td>{{ recipe.name }}</td><td>{{ recipe.output_quantity }}× {{ recipe.output_item.name }}</td><td>{{ recipe.supply_cost }}</td><td>{{ recipe.gold_cost }}</td><td>{{ recipe.xp_reward }}</td></tr>{% endfor %}
   </tbody></table></div>
 </details>
 
 <details class="index-section">
   <summary><span class="lang-en">ADVENTURES</span><span class="lang-fr">AVENTURES</span> · {{ adventures|length }}</summary>
   <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Name</span><span class="lang-fr">Nom</span></th><th>PA</th><th>XP</th><th><span class="lang-en">Gold</span><span class="lang-fr">Or</span></th><th><span class="lang-en">Supplies</span><span class="lang-fr">Ressources</span></th><th><span class="lang-en">Difficulty</span><span class="lang-fr">Difficulté</span></th></tr></thead><tbody>
-    {% for adventure in adventures %}<tr class="index-row"><td title="{{ adventure.description }}">{{ adventure.name }}</td><td>{{ adventure.energy_cost }}</td><td>{{ adventure.xp_reward }}</td><td>{{ adventure.gold_reward }}</td><td>{{ adventure.supply_reward }}</td><td>{{ adventure.difficulty }}</td></tr>{% endfor %}
+    {% for adventure in adventures %}<tr class="index-row"><td>{{ adventure.name }}</td><td>{{ adventure.energy_cost }}</td><td>{{ adventure.xp_reward }}</td><td>{{ adventure.gold_reward }}</td><td>{{ adventure.supply_reward }}</td><td>{{ adventure.difficulty }}</td></tr>{% endfor %}
   </tbody></table></div>
 </details>
 
@@ -105,14 +105,14 @@
     {% for companion in companions %}<tr class="index-row"><td>{{ companion.name }}</td><td>{{ companion.get_habitat_display }}</td><td>{{ companion.base_attack }}</td><td>{{ companion.base_defense }}</td><td>{{ companion.supply_cost }} RES</td></tr>{% endfor %}
   </tbody></table></div>
   <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Enchantment</span><span class="lang-fr">Enchantement</span></th><th>ATQ</th><th>DEF</th><th><span class="lang-en">Cost</span><span class="lang-fr">Coût</span></th></tr></thead><tbody>
-    {% for enchantment in enchantments %}<tr class="index-row"><td title="{{ enchantment.description }}">{{ enchantment.name }}</td><td>+{{ enchantment.attack_bonus }}</td><td>+{{ enchantment.defense_bonus }}</td><td>{{ enchantment.gold_cost }} G</td></tr>{% endfor %}
+    {% for enchantment in enchantments %}<tr class="index-row"><td>{{ enchantment.name }}</td><td>+{{ enchantment.attack_bonus }}</td><td>+{{ enchantment.defense_bonus }}</td><td>{{ enchantment.gold_cost }} G</td></tr>{% endfor %}
   </tbody></table></div>
 </details>
 
 <details class="index-section">
   <summary><span class="lang-en">ACHIEVEMENTS / EVENTS</span><span class="lang-fr">SUCCÈS / ÉVÉNEMENTS</span> · {{ achievements|length }}</summary>
   <div class="index-table-wrap"><table class="index-table"><thead><tr><th><span class="lang-en">Achievement</span><span class="lang-fr">Succès</span></th><th><span class="lang-en">Target</span><span class="lang-fr">Objectif</span></th><th><span class="lang-en">Reward</span><span class="lang-fr">Récompense</span></th></tr></thead><tbody>
-    {% for achievement in achievements %}<tr class="index-row"><td title="{{ achievement.description }}">{{ achievement.name }}</td><td>{{ achievement.target }}</td><td>{{ achievement.reward_gold }} G</td></tr>{% endfor %}
+    {% for achievement in achievements %}<tr class="index-row"><td>{{ achievement.name }}</td><td>{{ achievement.target }}</td><td>{{ achievement.reward_gold }} G</td></tr>{% endfor %}
   </tbody></table></div>
   <div class="index-table-wrap"><table class="index-table"><tbody>
     {% for boss in event_bosses %}<tr class="index-row"><td><span class="lang-en">World boss</span><span class="lang-fr">Boss mondial</span></td><td>{{ boss.name }}</td><td>{{ boss.current_hp }}/{{ boss.max_hp }} PV</td></tr>{% endfor %}
@@ -124,12 +124,17 @@
 (() => {
   const input = document.getElementById('index-search');
   if (!input) return;
+  const syncPlaceholder = () => {
+    input.placeholder = document.documentElement.lang === 'fr' ? 'Rechercher' : 'Search';
+  };
   input.addEventListener('input', () => {
     const query = input.value.trim().toLocaleLowerCase();
     document.querySelectorAll('.index-row').forEach((row) => {
-      row.hidden = query && !row.textContent.toLocaleLowerCase().includes(query);
+      row.hidden = Boolean(query && !row.textContent.toLocaleLowerCase().includes(query));
     });
   });
+  new MutationObserver(syncPlaceholder).observe(document.documentElement, {attributes:true, attributeFilter:['lang']});
+  syncPlaceholder();
 })();
 </script>
 {% endblock %}
