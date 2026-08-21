@@ -134,9 +134,24 @@ class TowerProgressionTests(TestCase):
         self.assertIn("guard", advanced_codes)
         self.assertIn("town", advanced_codes)
 
+    def test_visual_map_shows_full_tower_with_locked_future_floors(self):
+        Character.objects.create(name="Cartographer", floor=2)
+        response = self.client.get("/tower/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "visual-floor-grid")
+        self.assertContains(response, "Skybreaker Citadel")
+        self.assertContains(response, "VERROUILLÉ")
+        self.assertContains(response, "images/biomes/")
+
+    def test_camp_has_floor_artwork(self):
+        Character.objects.create(name="Sightseer", floor=1)
+        response = self.client.get("/")
+        self.assertContains(response, "floor-art-hero")
+        self.assertContains(response, "images/biomes/plains.svg")
+
 
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_v082_assets_and_dynamic_menu(self):
+    def test_base_layout_exposes_v090_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
@@ -144,19 +159,20 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, 'data-language="en"')
         self.assertContains(response, "css/v080-compact.css")
         self.assertContains(response, "css/v081-readability.css")
+        self.assertContains(response, "css/v090-visual.css")
         self.assertContains(response, "classic/classic.css")
         self.assertContains(response, "js/i18n-content-v080.js")
-        self.assertContains(response, "?v=0.8.2")
-        self.assertContains(response, "VER <span id=\"version-label\">0.8.2</span>", html=False)
+        self.assertContains(response, "?v=0.9.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.9.0</span>", html=False)
         self.assertContains(response, "menu-entry-index")
         self.assertContains(response, "quick-stats")
 
     def test_tower_screen_has_french_and_english_travel_labels(self):
         Character.objects.create(name="Translator", floor=3)
         response = self.client.get("/tower/")
-        self.assertContains(response, "Travel")
-        self.assertContains(response, "Aller")
-        self.assertContains(response, "Carte des")
+        self.assertContains(response, "TRAVEL")
+        self.assertContains(response, "ALLER")
+        self.assertContains(response, "CARTE DE LA TOUR")
 
     def test_authenticated_layout_contains_live_chat(self):
         user = User.objects.create_user(username="chat_user")
@@ -192,7 +208,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.8.2")
+        self.assertEqual(response.json()["version"], "0.9.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
