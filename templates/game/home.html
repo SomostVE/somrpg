@@ -5,10 +5,10 @@
 {% block content %}
 <section class="tower-hero">
   <article class="retro-window page-window compact-intro">
-    <div class="window-title"><span class="lang-en">FLOOR</span><span class="lang-fr">ÉTAGE</span> F{{ active_floor|stringformat:"02d" }}</div>
+    <div class="window-title"><span class="lang-en">SECTOR</span><span class="lang-fr">SECTEUR</span> S{{ active_floor|stringformat:"02d" }}</div>
     <div class="page-body floor-identity">
       {% if tower_floor %}<div class="floor-art floor-art-hero">{% include "game/_floor_art.html" with floor=tower_floor %}</div>{% endif %}
-      <div class="floor-number-big">F{{ active_floor|stringformat:"02d" }}</div>
+      <div class="floor-number-big">S{{ active_floor|stringformat:"02d" }}</div>
       {% if tower_floor %}
         <div class="floor-kicker">{{ tower_floor.biome|upper }}</div>
         <h1 class="floor-name-big">{{ tower_floor.name }}</h1>
@@ -19,11 +19,11 @@
 
       <div class="floor-nav-bar">
         {% if active_floor > 1 %}
-        <form method="post" action="{% url 'travel_floor' active_floor|add:'-1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">&lt; F{{ active_floor|add:'-1' }}</button></form>
+        <form method="post" action="{% url 'travel_floor' active_floor|add:'-1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">&lt; S{{ active_floor|add:'-1' }}</button></form>
         {% else %}<span></span>{% endif %}
-        <div class="floor-nav-center"><span class="lang-en">Highest unlocked</span><span class="lang-fr">Plus haut débloqué</span><strong>F{{ character.floor|stringformat:"02d" }}</strong></div>
+        <div class="floor-nav-center"><span class="lang-en">Highest unlocked</span><span class="lang-fr">Plus haut débloqué</span><strong>S{{ character.floor|stringformat:"02d" }}</strong></div>
         {% if active_floor < character.floor %}
-        <form method="post" action="{% url 'travel_floor' active_floor|add:'1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">F{{ active_floor|add:'1' }} &gt;</button></form>
+        <form method="post" action="{% url 'travel_floor' active_floor|add:'1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">S{{ active_floor|add:'1' }} &gt;</button></form>
         {% else %}<span></span>{% endif %}
       </div>
     </div>
@@ -33,11 +33,11 @@
     <div class="window-title"><span class="lang-en">OBJECTIVE</span><span class="lang-fr">OBJECTIF</span></div>
     <div class="page-body floor-objectives">
       {% if active_floor < character.floor %}
-        <div class="objective-card"><strong><span class="lang-en">CLEARED FLOOR</span><span class="lang-fr">ÉTAGE TERMINÉ</span></strong><small><span class="lang-en">Replay for XP, gold and loot.</span><span class="lang-fr">Rejouable pour XP, or et butin.</span></small></div>
+        <div class="objective-card"><strong><span class="lang-en">CLEARED SECTOR</span><span class="lang-fr">SECTEUR TERMINÉ</span></strong><small><span class="lang-en">Replay for XP, gold and loot.</span><span class="lang-fr">Rejouable pour XP, or et butin.</span></small></div>
       {% elif floor_boss %}
         <div class="objective-card boss"><strong><span class="lang-en">BOSS</span><span class="lang-fr">BOSS</span></strong><small>{{ floor_boss.enemy.name }}</small></div>
       {% else %}
-        <div class="objective-card"><strong><span class="lang-en">ASCEND</span><span class="lang-fr">MONTER</span></strong><small><span class="lang-en">Win to unlock the next floor.</span><span class="lang-fr">Gagnez pour débloquer l'étage suivant.</span></small></div>
+        <div class="objective-card"><strong><span class="lang-en">ASCEND</span><span class="lang-fr">MONTER</span></strong><small><span class="lang-en">Win to unlock the next sector.</span><span class="lang-fr">Gagnez pour débloquer le secteur suivant.</span></small></div>
       {% endif %}
       <div class="action-row">
         <a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></a>
@@ -50,7 +50,7 @@
 
 {% if new_shop_offers %}
 <section class="retro-window help-window">
-  <div class="window-title"><span class="lang-en">FLOOR STOCK</span><span class="lang-fr">STOCK DE L'ÉTAGE</span></div>
+  <div class="window-title"><span class="lang-en">SECTOR STOCK</span><span class="lang-fr">STOCK DU SECTEUR</span></div>
   <div class="page-body"><div class="unlock-strip">{% for offer in new_shop_offers %}<a class="unlock-chip" href="{% url 'floor_shop' %}"><b>{{ offer.price }}G</b><span>{{ offer.item.name }}</span></a>{% endfor %}</div></div>
 </section>
 {% endif %}
