@@ -253,3 +253,18 @@ class EventDungeonProgress(models.Model):
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["dungeon", "character"], name="classic_unique_event_character")]
+
+
+class Colony(models.Model):
+    character = models.OneToOneField(Character, related_name="colony", on_delete=models.CASCADE)
+    inhabitants = models.PositiveIntegerField(default=3)
+    lifetime_recruited = models.PositiveBigIntegerField(default=3)
+    treasury_level = models.PositiveSmallIntegerField(default=0)
+    market_level = models.PositiveSmallIntegerField(default=0)
+    hunters_level = models.PositiveSmallIntegerField(default=0)
+    training_level = models.PositiveSmallIntegerField(default=0)
+    workshop_level = models.PositiveSmallIntegerField(default=0)
+    last_gold_collected_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.character.name} Colony"
