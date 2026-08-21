@@ -3,42 +3,73 @@
 {% block title %}Camp - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title">CAMP / FLOOR {{ character.floor }}</div>
-  <div class="page-body">
-    <p class="section-code">CURRENT ASCENT // READY</p>
-    <h1 class="page-title">Floor {{ character.floor }}</h1>
-
-    <p class="story-text">
-      {{ character.name }} waits at the edge of the safe room. Beyond the reinforced door,
-      the dungeon continues into another dark sector. The route upward will remain sealed
-      until the hostile presence on this floor is removed.
-    </p>
-
-    <hr class="divider">
-
-    <div class="data-grid">
-      <div class="data-row"><span>LEVEL</span><strong>{{ character.level }}</strong></div>
-      <div class="data-row"><span>EXPERIENCE</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div>
-      <div class="data-row"><span>MAX HP</span><strong>{{ character.max_hp }}</strong></div>
-      <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
+<section class="tower-hero">
+  <article class="retro-window page-window">
+    <div class="window-title"><span class="lang-en">CURRENT FLOOR</span><span class="lang-fr">ÉTAGE ACTUEL</span></div>
+    <div class="page-body floor-identity">
+      <div class="floor-number-big">F{{ character.floor|stringformat:"02d" }}</div>
+      {% if tower_floor %}
+        <div class="floor-kicker">{{ tower_floor.biome|upper }}</div>
+        <h1 class="floor-name-big">{{ tower_floor.name }}</h1>
+        <span class="floor-biome"><span class="lang-en">SAFE ZONE</span><span class="lang-fr">ZONE SÛRE</span> · {{ tower_floor.shop_name }}</span>
+        <p class="floor-description">{{ tower_floor.description }}</p>
+      {% else %}
+        <h1 class="floor-name-big"><span class="lang-en">Uncharted Floor</span><span class="lang-fr">Étage non cartographié</span></h1>
+        <p class="floor-description"><span class="lang-en">No authored floor data exists here yet. The tower structure is ready for new content.</span><span class="lang-fr">Aucune donnée d'étage n'existe encore ici. La structure de la tour est prête à recevoir du nouveau contenu.</span></p>
+      {% endif %}
     </div>
+  </article>
 
-    <div class="action-row">
-      <a class="button primary" href="{% url 'explore' %}">&gt; Advance into the dungeon</a>
+  <aside class="retro-window page-window">
+    <div class="window-title"><span class="lang-en">ASCENT OBJECTIVE</span><span class="lang-fr">OBJECTIF D'ASCENSION</span></div>
+    <div class="page-body floor-objectives">
+      {% if floor_boss %}
+        <div class="objective-card boss">
+          <strong><span class="lang-en">BOSS GATE</span><span class="lang-fr">PORTE DU BOSS</span></strong>
+          <small>{{ floor_boss.enemy.name }} · {{ floor_boss.title }}</small>
+        </div>
+      {% else %}
+        <div class="objective-card">
+          <strong><span class="lang-en">CLEAR THE FLOOR</span><span class="lang-fr">TERMINER L'ÉTAGE</span></strong>
+          <small><span class="lang-en">Defeat the current encounter to unlock Floor {{ character.floor|add:"1" }}.</span><span class="lang-fr">Battez la rencontre actuelle pour débloquer l'étage {{ character.floor|add:"1" }}.</span></small>
+        </div>
+      {% endif %}
+      <div class="objective-card">
+        <strong><span class="lang-en">CURRENT BUILD</span><span class="lang-fr">BUILD ACTUEL</span></strong>
+        <small>{{ character.get_archetype_display }} · ATK {{ character.total_attack }} · DEF {{ character.total_defense }} · HP {{ character.combat_max_hp }}</small>
+      </div>
+      <div class="action-row">
+        <a class="button primary" href="{% url 'explore' %}"><span class="lang-en">&gt; Enter floor encounter</span><span class="lang-fr">&gt; Entrer dans la rencontre</span></a>
+        <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Tower map</span><span class="lang-fr">Carte de la tour</span></a>
+      </div>
     </div>
-    <p class="command-note">CLEAR THE ENCOUNTER TO OPEN THE NEXT FLOOR.</p>
-  </div>
+  </aside>
 </section>
 
+{% if new_shop_offers %}
 <section class="retro-window help-window">
-  <div class="window-title">CAMP NOTES</div>
+  <div class="window-title"><span class="lang-en">NEW FLOOR STOCK</span><span class="lang-fr">NOUVEAU STOCK D'ÉTAGE</span></div>
+  <div class="page-body">
+    <div class="unlock-strip">
+      {% for offer in new_shop_offers %}
+        <a class="unlock-chip" href="{% url 'floor_shop' %}">
+          <b>NEW · {{ offer.price }}G</b>
+          <span>{{ offer.item.name }} · {{ offer.item.get_slot_display }}</span>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="retro-window help-window">
+  <div class="window-title"><span class="lang-en">ASCENT SYSTEM</span><span class="lang-fr">SYSTÈME D'ASCENSION</span></div>
   <div class="page-body">
     <ul class="text-list">
-      <li><strong>Character</strong> displays permanent stats and equipment bonuses.</li>
-      <li><strong>Inventory</strong> contains recovered items and equipment.</li>
-      <li><strong>Explore</strong> starts the current floor encounter.</li>
-      <li>Combat resolves automatically and is recorded line by line.</li>
+      <li><span class="lang-en">Every floor can define its own region, encounter range, shop stock and boss gate.</span><span class="lang-fr">Chaque étage peut définir sa région, ses rencontres, son stock de boutique et son boss.</span></li>
+      <li><span class="lang-en">New shop equipment remains unlocked after you continue upward.</span><span class="lang-fr">Les nouveaux équipements de boutique restent débloqués après votre progression.</span></li>
+      <li><span class="lang-en">Boss floors currently occur at 5, 10, 15 and 20.</span><span class="lang-fr">Les étages de boss actuels sont les 5, 10, 15 et 20.</span></li>
+      <li><span class="lang-en">The menu itself is data-driven and can grow as more systems unlock.</span><span class="lang-fr">Le menu est piloté par les données et peut évoluer lorsque de nouveaux systèmes se débloquent.</span></li>
     </ul>
   </div>
 </section>
