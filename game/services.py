@@ -9,10 +9,11 @@ from .models import (
     CodexDiscovery,
     CommunitySeason,
     Enemy,
-    InventoryItem,
     Item,
     SeasonProgress,
+    TowerFloor,
 )
+from .tower import add_item
 
 
 DUNGEON_COEFFICIENT = 1.0
@@ -91,11 +92,22 @@ def discover_item(character: Character, item: Item):
     return discover(character, "item", item.pk, item.name)
 
 
+def discover_floor(character: Character, floor: TowerFloor | None):
+    if not floor:
+        return False
+    return discover(character, "floor", floor.floor_number, f"Floor {floor.floor_number} — {floor.name}")
+
+
 def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
     from classic.services import classic_combat_bonus
+
+    defeated_floor = character.floor
     extra_attack, extra_defense = classic_combat_bonus(character)
-    player_hp, enemy_hp = character.max_hp, enemy.max_hp
+    player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
     rounds = []
+    if enemy.is_boss:
+        rounds.append(f"BOSS GATE: {enemy.name} blocks Floor {defeated_floor}.")
+
     for n in range(1, 51):
         damage = max(1, character.total_attack + extra_attack - enemy.defense + random.randint(-1, 1))
         enemy_hp = max(0, enemy_hp - damage)
@@ -111,6 +123,7 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
         return CombatResult(False, enemy, rounds)
 
     from classic.services import guild_reward_multipliers
+
     xp_multiplier, gold_multiplier = guild_reward_multipliers(character)
     xp_reward = int(enemy.xp_reward * xp_multiplier)
     gold = int(random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max)) * gold_multiplier)
@@ -124,18 +137,14 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
 
     loot_name = None
     if enemy.loot and random.randint(1, 100) <= enemy.loot_chance:
-        entry, created = InventoryItem.objects.get_or_create(
-            character=character,
-            item=enemy.loot,
-            defaults={"quantity": 1},
-        )
-        if not created:
-            entry.quantity += 1
-            entry.save(update_fields=["quantity"])
+        entry, _ = add_item(character, enemy.loot, floor_number=defeated_floor)
         discover_item(character, enemy.loot)
-        loot_name = enemy.loot.name
+        loot_name = entry.display_name
+
+    discover_floor(character, TowerFloor.objects.filter(floor_number=character.floor).first())
 
     from classic.services import check_achievements, record_daily
+
     record_daily(character, dungeon_clears=1)
     check_achievements(character)
 

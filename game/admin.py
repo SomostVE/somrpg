@@ -7,9 +7,12 @@ from .models import (
     CraftingRecipe,
     DiscordProfile,
     Enemy,
+    FloorBoss,
+    FloorShopOffer,
     InventoryItem,
     Item,
     SeasonProgress,
+    TowerFloor,
 )
 
 
@@ -23,6 +26,7 @@ class CharacterAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "user",
+        "archetype",
         "level",
         "floor",
         "dungeon_clears",
@@ -31,17 +35,37 @@ class CharacterAdmin(admin.ModelAdmin):
         "guard_resources",
         "updated_at",
     )
+    list_filter = ("archetype",)
     inlines = [InventoryInline]
 
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ("name", "rarity", "attack_bonus", "defense_bonus")
+    list_display = ("name", "rarity", "slot", "unlock_floor", "shop_price", "shop_enabled", "attack_bonus", "defense_bonus")
+    list_filter = ("rarity", "slot", "shop_enabled", "unlock_floor")
 
 
 @admin.register(Enemy)
 class EnemyAdmin(admin.ModelAdmin):
-    list_display = ("name", "floor_min", "max_hp", "attack", "defense", "xp_reward", "enabled")
+    list_display = ("name", "floor_min", "floor_max", "is_boss", "max_hp", "attack", "defense", "xp_reward", "enabled")
+    list_filter = ("is_boss", "enabled")
+
+
+@admin.register(TowerFloor)
+class TowerFloorAdmin(admin.ModelAdmin):
+    list_display = ("floor_number", "name", "biome", "shop_name", "safe_zone")
+    ordering = ("floor_number",)
+
+
+@admin.register(FloorBoss)
+class FloorBossAdmin(admin.ModelAdmin):
+    list_display = ("floor", "enemy", "title")
+
+
+@admin.register(FloorShopOffer)
+class FloorShopOfferAdmin(admin.ModelAdmin):
+    list_display = ("unlock_floor", "item", "price", "enabled")
+    list_filter = ("unlock_floor", "enabled")
 
 
 @admin.register(CommunitySeason)

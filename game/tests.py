@@ -5,9 +5,11 @@ from django.contrib.auth import get_user_model
 from django.test import RequestFactory, TestCase
 from django.utils import timezone
 
-from .models import Character, CommunitySeason, DiscordProfile, SeasonProgress
+from .models import Character, CommunitySeason, DiscordProfile, FloorShopOffer, InventoryItem, SeasonProgress, TowerFloor
+from .navigation import navigation_for
 from .services import build_standings
 from .timekeeping import game_day_key, next_reset_at
+from .tower import floor_encounter
 from .views import get_character
 
 
@@ -24,7 +26,6 @@ class CommunityRankingTests(TestCase):
             starts_at=timezone.now(),
             active=True,
         )
-
         self.user_a = User.objects.create_user(username="discord_a")
         self.user_b = User.objects.create_user(username="discord_b")
         DiscordProfile.objects.create(user=self.user_a, discord_id="1001", username="Alpha")
@@ -63,17 +64,67 @@ class CharacterOwnershipTests(TestCase):
         self.assertEqual(get_character(request), local_character)
 
 
+class TowerProgressionTests(TestCase):
+    def test_seeded_tower_has_twenty_floors_and_progressive_shop(self):
+        self.assertEqual(TowerFloor.objects.count(), 20)
+        self.assertTrue(FloorShopOffer.objects.filter(unlock_floor=1).exists())
+        self.assertTrue(FloorShopOffer.objects.filter(unlock_floor=20).exists())
+
+    def test_boss_gate_is_used_on_floor_five(self):
+        character = Character.objects.create(name="Boss Tester", floor=5)
+        enemy, is_boss = floor_encounter(character)
+        self.assertTrue(is_boss)
+        self.assertTrue(enemy.is_boss)
+        self.assertEqual(enemy.floor_min, 5)
+
+    def test_shop_hides_future_floor_stock(self):
+        character = Character.objects.create(name="Shop Tester", floor=3, gold=999)
+        response = self.client.get("/shop/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Hunter Dagger")
+        self.assertNotContains(response, "Skybreaker Saber")
+
+    def test_equipping_same_slot_replaces_previous_item(self):
+        character = Character.objects.create(name="Gear Tester", floor=10)
+        offers = list(FloorShopOffer.objects.filter(item__slot="weapon", unlock_floor__lte=10).select_related("item")[:2])
+        first = InventoryItem.objects.create(character=character, item=offers[0].item, equipped=True)
+        second = InventoryItem.objects.create(character=character, item=offers[1].item)
+        self.client.post(f"/inventory/{second.id}/equip/")
+        first.refresh_from_db()
+        second.refresh_from_db()
+        self.assertFalse(first.equipped)
+        self.assertTrue(second.equipped)
+
+    def test_archetypes_change_effective_stats(self):
+        vanguard = Character.objects.create(name="V", archetype="vanguard")
+        strider = Character.objects.create(name="S", archetype="strider")
+        arcanist = Character.objects.create(name="A", archetype="arcanist")
+        self.assertGreater(vanguard.combat_max_hp, strider.combat_max_hp)
+        self.assertGreater(arcanist.total_attack, vanguard.total_attack)
+
+    def test_navigation_unlocks_services_by_floor(self):
+        early = Character.objects.create(name="Early", floor=1)
+        advanced = Character.objects.create(name="Advanced", floor=5)
+        early_codes = {entry["code"] for section in navigation_for(early) for entry in section["entries"]}
+        advanced_codes = {entry["code"] for section in navigation_for(advanced) for entry in section["entries"]}
+        self.assertNotIn("guard", early_codes)
+        self.assertNotIn("town", early_codes)
+        self.assertIn("guard", advanced_codes)
+        self.assertIn("town", advanced_codes)
+
+
 class BilingualLayoutTests(TestCase):
-    def test_base_layout_exposes_language_switcher_versioned_assets_and_compact_shell(self):
+    def test_base_layout_exposes_language_switcher_versioned_assets_and_dynamic_menu(self):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, 'data-language="fr"')
         self.assertContains(response, 'data-language="en"')
-        self.assertContains(response, "css/v06-shell.css")
+        self.assertContains(response, "css/v07-tower.css")
         self.assertContains(response, "js/live-shell.js")
-        self.assertContains(response, "?v=0.6.0")
-        self.assertContains(response, "VER <span id=\"version-label\">0.6.0</span>", html=False)
+        self.assertContains(response, "?v=0.7.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.7.0</span>", html=False)
+        self.assertContains(response, "menu-entry-tower")
         self.assertContains(response, "quick-stats")
 
     def test_authenticated_layout_contains_live_chat(self):
@@ -89,7 +140,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.6.0")
+        self.assertEqual(response.json()["version"], "0.7.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 

@@ -1,0 +1,44 @@
+{% extends "game/base.html" %}
+
+{% block title %}Tower - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title"><span class="lang-en">TOWER ASCENT DIRECTORY</span><span class="lang-fr">RÉPERTOIRE DE L'ASCENSION</span></div>
+  <div class="page-body">
+    <p class="section-code"><span class="lang-en">PROGRESSION MAP // CURRENT FLOOR {{ character.floor }}</span><span class="lang-fr">CARTE DE PROGRESSION // ÉTAGE ACTUEL {{ character.floor }}</span></p>
+    <h1 class="page-title"><span class="lang-en">The Tower</span><span class="lang-fr">La Tour</span></h1>
+    <p class="story-text">
+      <span class="lang-en">Each floor is its own region. Reaching higher floors opens new shops, stronger equipment, new enemies and major boss gates.</span>
+      <span class="lang-fr">Chaque étage est une région à part entière. Atteindre les étages supérieurs ouvre de nouvelles boutiques, de meilleurs équipements, de nouveaux ennemis et des boss de palier.</span>
+    </p>
+  </div>
+</section>
+
+<section class="retro-window page-window">
+  <div class="window-title"><span class="lang-en">CHARTED FLOORS</span><span class="lang-fr">ÉTAGES CARTOGRAPHIÉS</span></div>
+  <div class="page-body tower-list">
+    {% for floor in floors %}
+      <article class="floor-card {% if floor.floor_number < character.floor %}cleared{% elif floor.floor_number == character.floor %}current{% else %}locked{% endif %}{% if floor.has_boss %} boss-floor{% endif %}">
+        <div class="floor-index">F{{ floor.floor_number|stringformat:"02d" }}</div>
+        <div>
+          <h3>{{ floor.name }}</h3>
+          <p>{{ floor.biome|upper }} · {{ floor.description }}</p>
+        </div>
+        <div class="floor-state">
+          {% if floor.floor_number < character.floor %}
+            <span class="lang-en">CLEARED</span><span class="lang-fr">TERMINÉ</span>
+          {% elif floor.floor_number == character.floor %}
+            <span class="lang-en">CURRENT</span><span class="lang-fr">ACTUEL</span>
+            {% if floor.has_boss %}<br>{{ floor.boss_gate.enemy.name }}{% endif %}
+          {% else %}
+            <span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <p class="empty-text"><span class="lang-en">No floor data is configured.</span><span class="lang-fr">Aucune donnée d'étage n'est configurée.</span></p>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

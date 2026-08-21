@@ -4,25 +4,28 @@
 
 {% block content %}
 <section class="retro-window page-window">
-  <div class="window-title">CHARACTER RECORD</div>
+  <div class="window-title"><span class="lang-en">CHARACTER RECORD</span><span class="lang-fr">DOSSIER DU PERSONNAGE</span></div>
   <div class="page-body">
-    <p class="section-code">GUILD FILE // ACTIVE ADVENTURER</p>
+    <p class="section-code">{{ character.get_archetype_display|upper }} // F{{ character.floor|stringformat:"02d" }}{% if tower_floor %} // {{ tower_floor.name|upper }}{% endif %}</p>
     <h1 class="page-title">{{ character.name }}</h1>
 
     <p class="story-text">
-      Current combat registration and progression record. Equipment modifiers are included
-      in the final attack and defense values shown below.
+      <span class="lang-en">Your archetype, equipment slots and item affixes are included in effective combat values.</span>
+      <span class="lang-fr">Votre archétype, vos emplacements d'équipement et les affixes des objets sont inclus dans les valeurs de combat effectives.</span>
     </p>
 
     <div class="data-grid">
       <div class="data-row"><span>LEVEL</span><strong>{{ character.level }}</strong></div>
       <div class="data-row"><span>XP</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div>
-      <div class="data-row"><span>MAX HP</span><strong>{{ character.max_hp }}</strong></div>
+      <div class="data-row"><span>ARCHETYPE</span><strong>{{ character.get_archetype_display }}</strong></div>
+      <div class="data-row"><span>COMBAT HP</span><strong>{{ character.combat_max_hp }}</strong></div>
       <div class="data-row"><span>BASE ATK</span><strong>{{ character.attack }}</strong></div>
-      <div class="data-row"><span>BASE DEF</span><strong>{{ character.defense }}</strong></div>
+      <div class="data-row"><span>CLASS ATK</span><strong>+{{ character.class_attack_bonus }}</strong></div>
       <div class="data-row"><span>GEAR ATK</span><strong>+{{ character.equipped_attack_bonus }}</strong></div>
-      <div class="data-row"><span>GEAR DEF</span><strong>+{{ character.equipped_defense_bonus }}</strong></div>
       <div class="data-row"><span>TOTAL ATK</span><strong>{{ character.total_attack }}</strong></div>
+      <div class="data-row"><span>BASE DEF</span><strong>{{ character.defense }}</strong></div>
+      <div class="data-row"><span>CLASS DEF</span><strong>+{{ character.class_defense_bonus }}</strong></div>
+      <div class="data-row"><span>GEAR DEF</span><strong>+{{ character.equipped_defense_bonus }}</strong></div>
       <div class="data-row"><span>TOTAL DEF</span><strong>{{ character.total_defense }}</strong></div>
       <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
       <div class="data-row"><span>CURRENT FLOOR</span><strong>{{ character.floor }}</strong></div>
@@ -31,13 +34,11 @@
 </section>
 
 <section class="retro-window help-window">
-  <div class="window-title">PROGRESSION NOTES</div>
-  <div class="page-body">
-    <ul class="text-list">
-      <li>Leveling increases maximum HP, attack and defense.</li>
-      <li>Equipped loot contributes passive combat bonuses.</li>
-      <li>More character systems will be added after the core dungeon loop is stable.</li>
-    </ul>
+  <div class="window-title"><span class="lang-en">ARCHETYPE PROTOTYPES</span><span class="lang-fr">PROTOTYPES D'ARCHÉTYPES</span></div>
+  <div class="page-body class-grid">
+    <div class="class-card"><strong>VANGUARD</strong><span>+10 HP · +2 DEF</span></div>
+    <div class="class-card"><strong>STRIDER</strong><span>+2 ATK</span></div>
+    <div class="class-card"><strong>ARCANIST</strong><span>+3 ATK · -5 HP</span></div>
   </div>
 </section>
 {% endblock %}

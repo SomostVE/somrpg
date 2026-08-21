@@ -4,19 +4,27 @@
 
 {% block content %}
 <section class="retro-window page-window">
-  <div class="window-title">DUNGEON ENCOUNTER / FLOOR {{ character.floor }}</div>
+  <div class="window-title">
+    {% if is_boss %}<span class="lang-en">BOSS GATE</span><span class="lang-fr">PORTE DU BOSS</span>{% else %}<span class="lang-en">FLOOR ENCOUNTER</span><span class="lang-fr">RENCONTRE D'ÉTAGE</span>{% endif %}
+    / F{{ encounter_floor.floor_number|stringformat:"02d" }}{% if encounter_floor %} / {{ encounter_floor.name|upper }}{% endif %}
+  </div>
   <div class="page-body">
     <div class="enemy-header">
       <div>
-        <p class="section-code">HOSTILE SIGNAL DETECTED</p>
+        <p class="section-code">{% if is_boss %}<span class="lang-en">PROGRESSION GATE // BOSS</span><span class="lang-fr">PORTE DE PROGRESSION // BOSS</span>{% else %}<span class="lang-en">HOSTILE SIGNAL DETECTED</span><span class="lang-fr">PRÉSENCE HOSTILE DÉTECTÉE</span>{% endif %}</p>
         <h1 class="page-title">{{ enemy.name }}</h1>
       </div>
-      <span class="enemy-rank">ACTIVE THREAT</span>
+      <span class="enemy-rank">{% if is_boss %}BOSS{% else %}<span class="lang-en">ACTIVE THREAT</span><span class="lang-fr">MENACE ACTIVE</span>{% endif %}</span>
     </div>
 
     <p class="story-text">
-      A hostile presence blocks the route to the next floor. Battle resolution is automatic,
-      but every exchange is recorded in the combat log.
+      {% if is_boss %}
+        <span class="lang-en">This enemy controls the staircase to the next sector of the tower. Defeating it unlocks the next floor and its shop progression.</span>
+        <span class="lang-fr">Cet ennemi contrôle l'escalier vers le secteur suivant de la tour. Le vaincre débloque l'étage suivant et sa progression de boutique.</span>
+      {% else %}
+        <span class="lang-en">A hostile presence blocks the route upward. Battle resolution is automatic and every exchange is recorded.</span>
+        <span class="lang-fr">Une présence hostile bloque la route vers l'étage supérieur. Le combat est automatique et chaque échange est enregistré.</span>
+      {% endif %}
     </p>
 
     <div class="data-grid">
@@ -32,28 +40,25 @@
     <div class="action-row">
       <form method="post">
         {% csrf_token %}
-        <button class="button primary" type="submit">&gt; Begin auto battle</button>
+        <button class="button primary" type="submit"><span class="lang-en">&gt; Begin auto battle</span><span class="lang-fr">&gt; Commencer le combat automatique</span></button>
       </form>
     </div>
-    <p class="command-note">THE ENCOUNTER WILL RESOLVE TURN BY TURN.</p>
     {% endif %}
   </div>
 </section>
 
 {% if result %}
 <section class="retro-window log-window">
-  <div class="window-title">COMBAT LOG</div>
+  <div class="window-title"><span class="lang-en">COMBAT LOG</span><span class="lang-fr">JOURNAL DE COMBAT</span></div>
   <div class="combat-log">
-    {% for line in result.rounds %}
-    <p>{{ line }}</p>
-    {% endfor %}
+    {% for line in result.rounds %}<p>{{ line }}</p>{% endfor %}
   </div>
 </section>
 
 <section class="retro-window reward-window">
-  <div class="window-title">BATTLE RESULT</div>
+  <div class="window-title"><span class="lang-en">BATTLE RESULT</span><span class="lang-fr">RÉSULTAT DU COMBAT</span></div>
   <div class="page-body">
-    <div class="result-banner">{% if result.victory %}VICTORY CONFIRMED{% else %}DEFEAT RECORDED{% endif %}</div>
+    <div class="result-banner">{% if result.victory %}<span class="lang-en">VICTORY CONFIRMED</span><span class="lang-fr">VICTOIRE CONFIRMÉE</span>{% else %}<span class="lang-en">DEFEAT RECORDED</span><span class="lang-fr">DÉFAITE ENREGISTRÉE</span>{% endif %}</div>
 
     {% if result.victory %}
     <div class="reward-list">
@@ -64,13 +69,12 @@
     </div>
 
     <div class="action-row">
-      <a class="button primary" href="{% url 'explore' %}">&gt; Proceed to Floor {{ character.floor }}</a>
-      <a class="button" href="{% url 'inventory' %}">Check inventory</a>
+      <a class="button primary" href="{% url 'home' %}"><span class="lang-en">&gt; Enter Floor {{ character.floor }}</span><span class="lang-fr">&gt; Entrer à l'étage {{ character.floor }}</span></a>
+      <a class="button" href="{% url 'floor_shop' %}"><span class="lang-en">Check floor shop</span><span class="lang-fr">Voir la boutique</span></a>
+      <a class="button" href="{% url 'inventory' %}"><span class="lang-en">Inventory</span><span class="lang-fr">Inventaire</span></a>
     </div>
     {% else %}
-    <div class="action-row">
-      <a class="button" href="{% url 'home' %}">&gt; Return to camp</a>
-    </div>
+    <div class="action-row"><a class="button" href="{% url 'home' %}"><span class="lang-en">&gt; Return to camp</span><span class="lang-fr">&gt; Retourner au camp</span></a></div>
     {% endif %}
   </div>
 </section>

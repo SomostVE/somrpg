@@ -15,11 +15,26 @@ class Item(models.Model):
         ("epic", "Epic"),
         ("legendary", "Legendary"),
     ]
+    SLOT_CHOICES = [
+        ("misc", "Miscellaneous"),
+        ("weapon", "Weapon"),
+        ("head", "Head"),
+        ("body", "Body"),
+        ("hands", "Hands"),
+        ("feet", "Feet"),
+        ("accessory", "Accessory"),
+        ("material", "Material"),
+    ]
+
     name = models.CharField(max_length=80, unique=True)
     description = models.CharField(max_length=240, blank=True)
     rarity = models.CharField(max_length=16, choices=RARITY_CHOICES, default="common")
+    slot = models.CharField(max_length=16, choices=SLOT_CHOICES, default="misc")
     attack_bonus = models.PositiveIntegerField(default=0)
     defense_bonus = models.PositiveIntegerField(default=0)
+    unlock_floor = models.PositiveIntegerField(default=1)
+    shop_price = models.PositiveIntegerField(default=10)
+    shop_enabled = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -28,6 +43,8 @@ class Item(models.Model):
 class Enemy(models.Model):
     name = models.CharField(max_length=80, unique=True)
     floor_min = models.PositiveIntegerField(default=1)
+    floor_max = models.PositiveIntegerField(null=True, blank=True)
+    is_boss = models.BooleanField(default=False)
     max_hp = models.PositiveIntegerField(default=10)
     attack = models.PositiveIntegerField(default=2)
     defense = models.PositiveIntegerField(default=0)
@@ -39,13 +56,19 @@ class Enemy(models.Model):
     enabled = models.BooleanField(default=True)
 
     class Meta:
-        ordering = ["floor_min", "name"]
+        ordering = ["floor_min", "is_boss", "name"]
 
     def __str__(self):
         return self.name
 
 
 class Character(models.Model):
+    ARCHETYPE_CHOICES = [
+        ("vanguard", "Vanguard"),
+        ("strider", "Strider"),
+        ("arcanist", "Arcanist"),
+    ]
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         null=True,
@@ -54,6 +77,7 @@ class Character(models.Model):
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=40, default="Adventurer")
+    archetype = models.CharField(max_length=16, choices=ARCHETYPE_CHOICES, default="vanguard")
     level = models.PositiveIntegerField(default=1)
     xp = models.PositiveIntegerField(default=0)
     gold = models.PositiveIntegerField(default=0)
@@ -81,20 +105,42 @@ class Character(models.Model):
         return self.level * 20
 
     @property
+    def class_attack_bonus(self):
+        return {"vanguard": 0, "strider": 2, "arcanist": 3}.get(self.archetype, 0)
+
+    @property
+    def class_defense_bonus(self):
+        return {"vanguard": 2, "strider": 0, "arcanist": 0}.get(self.archetype, 0)
+
+    @property
+    def class_hp_bonus(self):
+        return {"vanguard": 10, "strider": 0, "arcanist": -5}.get(self.archetype, 0)
+
+    @property
+    def combat_max_hp(self):
+        return max(1, self.max_hp + self.class_hp_bonus)
+
+    @property
     def equipped_attack_bonus(self):
-        return sum(x.item.attack_bonus for x in self.inventory.filter(equipped=True).select_related("item"))
+        return sum(
+            x.item.attack_bonus + x.affix_attack_bonus
+            for x in self.inventory.filter(equipped=True).select_related("item")
+        )
 
     @property
     def equipped_defense_bonus(self):
-        return sum(x.item.defense_bonus for x in self.inventory.filter(equipped=True).select_related("item"))
+        return sum(
+            x.item.defense_bonus + x.affix_defense_bonus
+            for x in self.inventory.filter(equipped=True).select_related("item")
+        )
 
     @property
     def total_attack(self):
-        return self.attack + self.equipped_attack_bonus
+        return self.attack + self.class_attack_bonus + self.equipped_attack_bonus
 
     @property
     def total_defense(self):
-        return self.defense + self.equipped_defense_bonus
+        return self.defense + self.class_defense_bonus + self.equipped_defense_bonus
 
     @property
     def guard_active(self):
@@ -102,7 +148,7 @@ class Character(models.Model):
 
     @property
     def codex_completion(self):
-        total = Enemy.objects.filter(enabled=True).count() + Item.objects.count()
+        total = Enemy.objects.filter(enabled=True).count() + Item.objects.count() + TowerFloor.objects.count()
         if total == 0:
             return 0.0
         discovered = self.codex_discoveries.count()
@@ -172,12 +218,63 @@ class InventoryItem(models.Model):
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=1)
     equipped = models.BooleanField(default=False)
+    affix_name = models.CharField(max_length=60, blank=True)
+    affix_attack_bonus = models.PositiveIntegerField(default=0)
+    affix_defense_bonus = models.PositiveIntegerField(default=0)
 
     class Meta:
         constraints = [models.UniqueConstraint(fields=["character", "item"], name="unique_character_item")]
 
+    @property
+    def display_name(self):
+        return f"{self.affix_name} {self.item.name}".strip()
+
     def __str__(self):
-        return f"{self.character} - {self.item} x{self.quantity}"
+        return f"{self.character} - {self.display_name} x{self.quantity}"
+
+
+class TowerFloor(models.Model):
+    floor_number = models.PositiveIntegerField(unique=True)
+    name = models.CharField(max_length=100)
+    biome = models.CharField(max_length=80)
+    description = models.CharField(max_length=360)
+    shop_name = models.CharField(max_length=100, default="Floor Market")
+    safe_zone = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["floor_number"]
+
+    @property
+    def has_boss(self):
+        return hasattr(self, "boss_gate")
+
+    def __str__(self):
+        return f"Floor {self.floor_number} — {self.name}"
+
+
+class FloorBoss(models.Model):
+    floor = models.OneToOneField(TowerFloor, related_name="boss_gate", on_delete=models.CASCADE)
+    enemy = models.ForeignKey(Enemy, related_name="tower_boss_gates", on_delete=models.CASCADE)
+    title = models.CharField(max_length=100, blank=True)
+
+    def __str__(self):
+        return f"Floor {self.floor.floor_number}: {self.enemy.name}"
+
+
+class FloorShopOffer(models.Model):
+    unlock_floor = models.PositiveIntegerField(default=1)
+    item = models.ForeignKey(Item, related_name="tower_shop_offers", on_delete=models.CASCADE)
+    price = models.PositiveIntegerField(default=10)
+    enabled = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["unlock_floor", "price", "item__name"]
+        constraints = [
+            models.UniqueConstraint(fields=["unlock_floor", "item"], name="unique_floor_shop_offer")
+        ]
+
+    def __str__(self):
+        return f"F{self.unlock_floor} — {self.item.name} ({self.price}G)"
 
 
 class DiscordProfile(models.Model):
@@ -235,7 +332,7 @@ class SeasonProgress(models.Model):
 
 
 class CodexDiscovery(models.Model):
-    TYPE_CHOICES = [("enemy", "Enemy"), ("item", "Item")]
+    TYPE_CHOICES = [("enemy", "Enemy"), ("item", "Item"), ("floor", "Floor")]
     character = models.ForeignKey(Character, related_name="codex_discoveries", on_delete=models.CASCADE)
     entry_type = models.CharField(max_length=16, choices=TYPE_CHOICES)
     entry_key = models.CharField(max_length=64)
