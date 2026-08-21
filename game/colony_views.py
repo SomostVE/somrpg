@@ -83,9 +83,14 @@ def colony_collect(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
+
     amount = collect_colony_gold(character)
     if amount:
-        add_season_progress(character, commerce=amount)
+        # Seasonal rankings only concern Discord-linked characters. Keeping local
+        # saves out of this path also makes colony collection independent from
+        # community state.
+        if character.user_id:
+            add_season_progress(character, commerce=amount)
         messages.success(request, f"Colony income collected: +{amount} gold.")
     else:
         messages.warning(request, "No colony income is ready yet.")
