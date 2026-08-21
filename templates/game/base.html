@@ -81,8 +81,9 @@
             <div class="menu-section-label"><span class="lang-en">{{ section.label_en }}</span><span class="lang-fr">{{ section.label_fr }}</span></div>
             {% for entry in section.entries %}
               <a href="{{ entry.href }}" class="menu-entry menu-entry-{{ entry.code }}">
-                <span class="menu-glyph">{{ entry.marker }}</span>
-                <span class="lang-en">{{ entry.label_en }}</span><span class="lang-fr">{{ entry.label_fr }}</span>
+                <span class="menu-glyph lang-en">{{ entry.marker_en }}</span>
+                <span class="menu-glyph lang-fr">{{ entry.marker_fr }}</span>
+                <span class="lang-en">{{ entry.label_en_rest }}</span><span class="lang-fr">{{ entry.label_fr_rest }}</span>
                 {% if entry.code == "guard" and character.guard_active %}<em>!</em>{% endif %}
               </a>
             {% endfor %}
