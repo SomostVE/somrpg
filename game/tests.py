@@ -81,6 +81,7 @@ class TowerProgressionTests(TestCase):
         character = Character.objects.create(name="Return Tester", floor=8)
         enemy, is_boss = floor_encounter(character, 5)
         self.assertFalse(is_boss)
+        self.assertIsNotNone(enemy)
         self.assertFalse(enemy.is_boss)
 
     def test_can_travel_between_unlocked_floors_without_losing_progress(self):
@@ -152,7 +153,7 @@ class BilingualLayoutTests(TestCase):
         response = self.client.get("/tower/")
         self.assertContains(response, "Travel")
         self.assertContains(response, "Aller")
-        self.assertContains(response, "Étages")
+        self.assertContains(response, "Carte des")
 
     def test_authenticated_layout_contains_live_chat(self):
         user = User.objects.create_user(username="chat_user")
