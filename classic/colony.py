@@ -14,11 +14,14 @@ BUILDINGS = {
 
 
 def get_colony(character):
-    return Colony.objects.get_or_create(character=character)[0]
+    try:
+        return character.colony
+    except Colony.DoesNotExist:
+        return Colony.objects.create(character=character)
 
 
-def colony_bonuses(character):
-    colony = get_colony(character)
+def colony_bonuses(character, colony=None):
+    colony = colony or get_colony(character)
     return {
         "damage": colony.training_level,
         "gold_multiplier": 1.0 + colony.treasury_level * 0.05,
