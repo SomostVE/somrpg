@@ -3,58 +3,40 @@
 {% block title %}Inventory - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title"><span class="lang-en">INVENTORY / EQUIPMENT</span><span class="lang-fr">INVENTAIRE / ÉQUIPEMENT</span></div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></div>
   <div class="page-body">
-    <p class="section-code"><span class="lang-en">SLOTTED GEAR // RANDOM AFFIXES</span><span class="lang-fr">ÉQUIPEMENT PAR EMPLACEMENT // AFFIXES ALÉATOIRES</span></p>
-    <h1 class="page-title"><span class="lang-en">Inventory</span><span class="lang-fr">Inventaire</span></h1>
-    <p class="story-text">
-      <span class="lang-en">Only one item can be equipped in each slot. Some newly acquired gear rolls a bonus affix based on the floor where it was obtained.</span>
-      <span class="lang-fr">Un seul objet peut être équipé par emplacement. Certains équipements obtenus reçoivent un affixe bonus selon l'étage où ils ont été acquis.</span>
-    </p>
-
+    <h1 class="page-title"><span class="lang-en">Equipment</span><span class="lang-fr">Équipement</span></h1>
     {% if entries %}
     <div class="item-list">
       {% for entry in entries %}
       <article class="item-card rarity-{{ entry.item.rarity }}">
         <div>
           <div>
-            <span class="gear-slot">{{ entry.item.get_slot_display }}</span>
+            <span class="gear-slot">
+              <span class="lang-en">{{ entry.item.get_slot_display }}</span>
+              <span class="lang-fr">{% if entry.item.slot == 'weapon' %}Arme{% elif entry.item.slot == 'head' %}Tête{% elif entry.item.slot == 'body' %}Corps{% elif entry.item.slot == 'hands' %}Mains{% elif entry.item.slot == 'feet' %}Pieds{% elif entry.item.slot == 'accessory' %}Accessoire{% elif entry.item.slot == 'material' %}Matériau{% else %}Divers{% endif %}</span>
+            </span>
             <strong class="item-name {% if entry.affix_name %}affix-name{% endif %}">{{ entry.display_name }}</strong>
           </div>
-          <p>{{ entry.item.description }}</p>
           <small>
-            {{ entry.item.get_rarity_display|upper }} · QTY {{ entry.quantity }} · UNLOCK F{{ entry.item.unlock_floor }}
+            <span class="lang-en">{{ entry.item.get_rarity_display|upper }}</span>
+            <span class="lang-fr">{% if entry.item.rarity == 'common' %}COMMUN{% elif entry.item.rarity == 'uncommon' %}PEU COMMUN{% elif entry.item.rarity == 'rare' %}RARE{% elif entry.item.rarity == 'epic' %}ÉPIQUE{% else %}LÉGENDAIRE{% endif %}</span>
+            · ×{{ entry.quantity }} · F{{ entry.item.unlock_floor }}
             {% if entry.item.attack_bonus or entry.affix_attack_bonus %} · ATK +{{ entry.item.attack_bonus }}{% if entry.affix_attack_bonus %}<span class="affix-bonus">+{{ entry.affix_attack_bonus }}</span>{% endif %}{% endif %}
             {% if entry.item.defense_bonus or entry.affix_defense_bonus %} · DEF +{{ entry.item.defense_bonus }}{% if entry.affix_defense_bonus %}<span class="affix-bonus">+{{ entry.affix_defense_bonus }}</span>{% endif %}{% endif %}
             {% if entry.equipped %} · <span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span>{% endif %}
           </small>
         </div>
         {% if entry.item.slot != "misc" and entry.item.slot != "material" %}
-        <form method="post" action="{% url 'toggle_equip' entry.id %}">
-          {% csrf_token %}
-          <button class="button" type="submit">
-            {% if entry.equipped %}<span class="lang-en">Unequip</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}
-          </button>
-        </form>
+        <form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Unequip</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>
         {% endif %}
       </article>
       {% endfor %}
     </div>
     {% else %}
-    <p class="empty-text"><span class="lang-en">[EMPTY] No recovered items are stored here.</span><span class="lang-fr">[VIDE] Aucun objet récupéré n'est stocké ici.</span></p>
+    <p class="empty-text"><span class="lang-en">Empty.</span><span class="lang-fr">Vide.</span></p>
     {% endif %}
-  </div>
-</section>
-
-<section class="retro-window help-window">
-  <div class="window-title"><span class="lang-en">EQUIPMENT RULES</span><span class="lang-fr">RÈGLES D'ÉQUIPEMENT</span></div>
-  <div class="page-body">
-    <ul class="text-list">
-      <li><span class="lang-en">Weapon, head, body, hands, feet and accessory slots are supported.</span><span class="lang-fr">Les emplacements arme, tête, corps, mains, pieds et accessoire sont pris en charge.</span></li>
-      <li><span class="lang-en">Equipping another item in the same slot automatically replaces the previous one.</span><span class="lang-fr">Équiper un autre objet dans le même emplacement remplace automatiquement l'ancien.</span></li>
-      <li><span class="lang-en">Affixes are instance bonuses and stack with the item's normal stats.</span><span class="lang-fr">Les affixes sont des bonus propres à l'objet et s'ajoutent à ses statistiques normales.</span></li>
-    </ul>
   </div>
 </section>
 {% endblock %}
