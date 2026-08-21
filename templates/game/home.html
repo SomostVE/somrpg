@@ -4,43 +4,44 @@
 
 {% block content %}
 <section class="tower-hero">
-  <article class="retro-window page-window">
-    <div class="window-title"><span class="lang-en">CURRENT FLOOR</span><span class="lang-fr">ÉTAGE ACTUEL</span></div>
+  <article class="retro-window page-window compact-intro">
+    <div class="window-title"><span class="lang-en">FLOOR</span><span class="lang-fr">ÉTAGE</span> F{{ active_floor|stringformat:"02d" }}</div>
     <div class="page-body floor-identity">
-      <div class="floor-number-big">F{{ character.floor|stringformat:"02d" }}</div>
+      <div class="floor-number-big">F{{ active_floor|stringformat:"02d" }}</div>
       {% if tower_floor %}
         <div class="floor-kicker">{{ tower_floor.biome|upper }}</div>
         <h1 class="floor-name-big">{{ tower_floor.name }}</h1>
-        <span class="floor-biome"><span class="lang-en">SAFE ZONE</span><span class="lang-fr">ZONE SÛRE</span> · {{ tower_floor.shop_name }}</span>
-        <p class="floor-description">{{ tower_floor.description }}</p>
+        <span class="floor-biome">{{ tower_floor.shop_name }}</span>
       {% else %}
-        <h1 class="floor-name-big"><span class="lang-en">Uncharted Floor</span><span class="lang-fr">Étage non cartographié</span></h1>
-        <p class="floor-description"><span class="lang-en">No authored floor data exists here yet. The tower structure is ready for new content.</span><span class="lang-fr">Aucune donnée d'étage n'existe encore ici. La structure de la tour est prête à recevoir du nouveau contenu.</span></p>
+        <h1 class="floor-name-big"><span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span></h1>
       {% endif %}
+
+      <div class="floor-nav-bar">
+        {% if active_floor > 1 %}
+        <form method="post" action="{% url 'travel_floor' active_floor|add:'-1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">&lt; F{{ active_floor|add:'-1' }}</button></form>
+        {% else %}<span></span>{% endif %}
+        <div class="floor-nav-center"><span class="lang-en">Highest unlocked</span><span class="lang-fr">Plus haut débloqué</span><strong>F{{ character.floor|stringformat:"02d" }}</strong></div>
+        {% if active_floor < character.floor %}
+        <form method="post" action="{% url 'travel_floor' active_floor|add:'1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="home"><button class="button" type="submit">F{{ active_floor|add:'1' }} &gt;</button></form>
+        {% else %}<span></span>{% endif %}
+      </div>
     </div>
   </article>
 
-  <aside class="retro-window page-window">
-    <div class="window-title"><span class="lang-en">ASCENT OBJECTIVE</span><span class="lang-fr">OBJECTIF D'ASCENSION</span></div>
+  <aside class="retro-window page-window compact-intro">
+    <div class="window-title"><span class="lang-en">OBJECTIVE</span><span class="lang-fr">OBJECTIF</span></div>
     <div class="page-body floor-objectives">
-      {% if floor_boss %}
-        <div class="objective-card boss">
-          <strong><span class="lang-en">BOSS GATE</span><span class="lang-fr">PORTE DU BOSS</span></strong>
-          <small>{{ floor_boss.enemy.name }} · {{ floor_boss.title }}</small>
-        </div>
+      {% if active_floor < character.floor %}
+        <div class="objective-card"><strong><span class="lang-en">CLEARED FLOOR</span><span class="lang-fr">ÉTAGE TERMINÉ</span></strong><small><span class="lang-en">Replay for XP, gold and loot.</span><span class="lang-fr">Rejouable pour XP, or et butin.</span></small></div>
+      {% elif floor_boss %}
+        <div class="objective-card boss"><strong><span class="lang-en">BOSS</span><span class="lang-fr">BOSS</span></strong><small>{{ floor_boss.enemy.name }}</small></div>
       {% else %}
-        <div class="objective-card">
-          <strong><span class="lang-en">CLEAR THE FLOOR</span><span class="lang-fr">TERMINER L'ÉTAGE</span></strong>
-          <small><span class="lang-en">Defeat the current encounter to unlock Floor {{ character.floor|add:"1" }}.</span><span class="lang-fr">Battez la rencontre actuelle pour débloquer l'étage {{ character.floor|add:"1" }}.</span></small>
-        </div>
+        <div class="objective-card"><strong><span class="lang-en">ASCEND</span><span class="lang-fr">MONTER</span></strong><small><span class="lang-en">Win to unlock the next floor.</span><span class="lang-fr">Gagnez pour débloquer l'étage suivant.</span></small></div>
       {% endif %}
-      <div class="objective-card">
-        <strong><span class="lang-en">CURRENT BUILD</span><span class="lang-fr">BUILD ACTUEL</span></strong>
-        <small>{{ character.get_archetype_display }} · ATK {{ character.total_attack }} · DEF {{ character.total_defense }} · HP {{ character.combat_max_hp }}</small>
-      </div>
       <div class="action-row">
-        <a class="button primary" href="{% url 'explore' %}"><span class="lang-en">&gt; Enter floor encounter</span><span class="lang-fr">&gt; Entrer dans la rencontre</span></a>
-        <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Tower map</span><span class="lang-fr">Carte de la tour</span></a>
+        <a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></a>
+        <a class="button" href="{% url 'floor_shop' %}"><span class="lang-en">Shop</span><span class="lang-fr">Boutique</span></a>
+        <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a>
       </div>
     </div>
   </aside>
@@ -48,29 +49,8 @@
 
 {% if new_shop_offers %}
 <section class="retro-window help-window">
-  <div class="window-title"><span class="lang-en">NEW FLOOR STOCK</span><span class="lang-fr">NOUVEAU STOCK D'ÉTAGE</span></div>
-  <div class="page-body">
-    <div class="unlock-strip">
-      {% for offer in new_shop_offers %}
-        <a class="unlock-chip" href="{% url 'floor_shop' %}">
-          <b>NEW · {{ offer.price }}G</b>
-          <span>{{ offer.item.name }} · {{ offer.item.get_slot_display }}</span>
-        </a>
-      {% endfor %}
-    </div>
-  </div>
+  <div class="window-title"><span class="lang-en">FLOOR STOCK</span><span class="lang-fr">STOCK DE L'ÉTAGE</span></div>
+  <div class="page-body"><div class="unlock-strip">{% for offer in new_shop_offers %}<a class="unlock-chip" href="{% url 'floor_shop' %}"><b>{{ offer.price }}G</b><span>{{ offer.item.name }}</span></a>{% endfor %}</div></div>
 </section>
 {% endif %}
-
-<section class="retro-window help-window">
-  <div class="window-title"><span class="lang-en">ASCENT SYSTEM</span><span class="lang-fr">SYSTÈME D'ASCENSION</span></div>
-  <div class="page-body">
-    <ul class="text-list">
-      <li><span class="lang-en">Every floor can define its own region, encounter range, shop stock and boss gate.</span><span class="lang-fr">Chaque étage peut définir sa région, ses rencontres, son stock de boutique et son boss.</span></li>
-      <li><span class="lang-en">New shop equipment remains unlocked after you continue upward.</span><span class="lang-fr">Les nouveaux équipements de boutique restent débloqués après votre progression.</span></li>
-      <li><span class="lang-en">Boss floors currently occur at 5, 10, 15 and 20.</span><span class="lang-fr">Les étages de boss actuels sont les 5, 10, 15 et 20.</span></li>
-      <li><span class="lang-en">The menu itself is data-driven and can grow as more systems unlock.</span><span class="lang-fr">Le menu est piloté par les données et peut évoluer lorsque de nouveaux systèmes se débloquent.</span></li>
-    </ul>
-  </div>
-</section>
 {% endblock %}
