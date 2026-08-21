@@ -76,5 +76,13 @@ STORAGES = {
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedStaticFilesStorage"},
 }
 
+# Cloudflare/reverse-proxy aware URL generation for Discord OAuth callbacks.
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+USE_X_FORWARDED_HOST = True
+
+DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID", "").strip()
+DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "").strip()
+DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
+
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SOMRPG_VERSION = "0.2.0"
+SOMRPG_VERSION = "0.3.0"
