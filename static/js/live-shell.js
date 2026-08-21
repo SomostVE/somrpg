@@ -53,6 +53,14 @@
     return document.documentElement.lang === "fr" ? "fr" : "en";
   }
 
+  function notifyChatFailure() {
+    window.SomRPGNotify?.(
+      "Impossible d'envoyer le message / Unable to send the message. Réessayez dans quelques secondes.",
+      "error",
+      7000,
+    );
+  }
+
   const chatMessages = document.getElementById("live-chat-messages");
   const chatForm = document.getElementById("live-chat-form");
   const chatInput = document.getElementById("live-chat-input");
@@ -132,9 +140,11 @@
       if (response.ok) {
         chatInput.value = "";
         await pollChat(false);
+      } else {
+        notifyChatFailure();
       }
     } catch (_) {
-      // Keep the typed message if sending failed.
+      notifyChatFailure();
     } finally {
       if (button) button.disabled = false;
       chatInput.focus();

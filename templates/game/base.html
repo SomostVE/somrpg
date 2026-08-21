@@ -17,11 +17,13 @@
   <link rel="stylesheet" href="{% static 'css/v090-visual.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-content-v080.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-polish-v080.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/notifications.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
 <body data-app-version="{{ version }}" data-version-url="{% url 'version_status' %}" data-chat-url="{% url 'live_chat' %}">
@@ -98,12 +100,6 @@
       </aside>
 
       <main class="main-column">
-        {% if messages %}
-        <section class="retro-window message-window">
-          <div class="window-title"><span class="lang-en">SYSTEM</span><span class="lang-fr">SYSTÈME</span></div>
-          {% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}
-        </section>
-        {% endif %}
         {% block content %}{% endblock %}
       </main>
 
@@ -135,7 +131,6 @@
     </div>
     {% else %}
     <main class="standalone-main">
-      {% if messages %}<section class="retro-window message-window"><div class="window-title"><span class="lang-en">SYSTEM</span><span class="lang-fr">SYSTÈME</span></div>{% for message in messages %}<p class="system-message {{ message.tags }}">{{ message }}</p>{% endfor %}</section>{% endif %}
       {% block standalone_content %}{% endblock %}
       <section class="retro-window standalone-community-link">
         <div class="window-title"><span class="lang-en">NETWORK</span><span class="lang-fr">RÉSEAU</span></div>
@@ -146,6 +141,15 @@
       </section>
     </main>
     {% endif %}
+
+    <div id="notification-stack" class="notification-stack" aria-live="polite" aria-atomic="false">
+      {% for message in messages %}
+      <div class="system-toast toast-{{ message.tags|default:'info' }}" data-toast>
+        <div class="system-toast-head"><strong>SYSTÈME / SYSTEM</strong><button type="button" data-toast-close aria-label="Close">×</button></div>
+        <p>{{ message }}</p>
+      </div>
+      {% endfor %}
+    </div>
 
     <div id="version-update-banner" class="version-update-banner" hidden><span class="lang-en">Updating SomRPG…</span><span class="lang-fr">Mise à jour de SomRPG…</span></div>
     <footer class="footer-line"><span>SOMRPG TERMINAL</span><span><span class="lang-en">TOWER / SQLITE / DISCORD</span><span class="lang-fr">TOUR / SQLITE / DISCORD</span></span></footer>
