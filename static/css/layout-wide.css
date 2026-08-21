@@ -1,0 +1,255 @@
+.screen-shell {
+  width: min(1720px, calc(100% - 20px));
+  margin: 10px auto;
+}
+
+.game-layout {
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 10px;
+}
+
+.sidebar {
+  position: sticky;
+  top: 10px;
+  align-self: start;
+  max-height: calc(100vh - 20px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.system-bar {
+  min-height: 58px;
+  padding: 9px 14px;
+  margin-bottom: 10px;
+}
+
+.status-window,
+.command-window,
+.message-window,
+.page-window,
+.help-window,
+.log-window,
+.reward-window {
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-bottom: 10px;
+}
+
+.status-table > div,
+.data-row {
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.language-switcher {
+  display: inline-flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-bottom: 2px;
+}
+
+.language-switcher button {
+  min-width: 34px;
+  padding: 3px 7px;
+  border: 1px solid var(--line-dim);
+  background: #08131f;
+  color: var(--muted);
+  font-family: "Courier New", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.language-switcher button:hover,
+.language-switcher button[aria-pressed="true"] {
+  border-color: var(--cyan);
+  color: var(--cyan);
+  background: #142942;
+}
+
+/* The prototype town contains many systems. On wide screens we use the
+   available horizontal space instead of stacking every module vertically. */
+.main-column:has(> #top) {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  align-items: start;
+}
+
+.main-column:has(> #top) > #top,
+.main-column:has(> #top) > .message-window {
+  grid-column: 1 / -1;
+}
+
+.main-column:has(> #top) > .classic-section {
+  margin-top: 0;
+  min-width: 0;
+}
+
+.main-column:has(> #top) .page-body {
+  padding-bottom: 1px;
+}
+
+.main-column:has(> #top) .classic-list {
+  gap: 5px;
+}
+
+.main-column:has(> #top) .classic-list article,
+.main-column:has(> #top) .classic-enchant,
+.main-column:has(> #top) .classic-event {
+  padding: 7px;
+  gap: 8px;
+}
+
+.main-column:has(> #top) .classic-subtitle {
+  margin: 10px 0 6px;
+}
+
+.main-column:has(> #top) .story-text {
+  margin-bottom: 8px;
+}
+
+.main-column:has(> #top) .data-grid {
+  margin: 8px 0;
+}
+
+/* Standard screens can use more columns for dense data without changing
+   the old-school window structure. */
+@media (min-width: 1250px) {
+  .main-column:not(:has(> #top)) .data-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .main-column:not(:has(> #top)) .reward-list,
+  .main-column:not(:has(> #top)) .personal-ranking,
+  .main-column:not(:has(> #top)) .coefficient-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 1450px) {
+  .screen-shell {
+    width: min(1380px, calc(100% - 18px));
+  }
+
+  .main-column:has(> #top) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 980px) {
+  .screen-shell {
+    width: min(100% - 12px, 960px);
+    margin: 6px auto;
+  }
+
+  .game-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 8px;
+  }
+
+  .sidebar .account-form {
+    grid-column: 1 / -1;
+  }
+
+  .status-table {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .command-window {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+  }
+
+  .main-column:has(> #top) {
+    grid-template-columns: 1fr;
+  }
+
+  .main-column:has(> #top) > #top,
+  .main-column:has(> #top) > .message-window {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .system-bar {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .system-subtitle {
+    display: block;
+    margin-top: 2px;
+  }
+
+  .system-meta {
+    min-width: 116px;
+  }
+
+  .sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .status-table,
+  .command-window {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .data-grid,
+  .reward-list,
+  .personal-ranking,
+  .coefficient-grid,
+  .codex-columns {
+    grid-template-columns: 1fr !important;
+  }
+
+  .command-window a {
+    padding: 8px 6px;
+    font-size: 0.9rem;
+  }
+
+  .item-card,
+  .recipe-card,
+  .classic-list article {
+    grid-template-columns: 1fr !important;
+  }
+
+  .classic-actions form,
+  .classic-actions .button,
+  .item-card form,
+  .recipe-card form {
+    width: 100%;
+  }
+
+  .classic-actions .button,
+  .item-card .button,
+  .recipe-card .button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 390px) {
+  .screen-shell {
+    width: calc(100% - 6px);
+    margin: 3px auto;
+  }
+
+  .system-bar {
+    flex-direction: column;
+  }
+
+  .system-meta {
+    width: 100%;
+    text-align: left;
+  }
+
+  .language-switcher {
+    justify-content: flex-start;
+  }
+}
