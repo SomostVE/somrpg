@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="{% static 'css/v081-readability.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v090-visual.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
@@ -55,13 +56,13 @@
             <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
             <div class="player-name-block">
               <strong>{{ character.name }}</strong>
-              <small><span class="lang-en">LV</span><span class="lang-fr">NV</span> {{ character.level }} · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</small>
+              <small><span class="lang-en">LV</span><span class="lang-fr">NV</span> {{ character.level }} · S{{ active_floor|stringformat:"02d" }} / S{{ character.floor|stringformat:"02d" }}</small>
             </div>
           </div>
           <div class="floor-chip">
-            <span>F{{ active_floor|stringformat:"02d" }}</span>
+            <span>S{{ active_floor|stringformat:"02d" }}</span>
             <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</strong>
-            <small>MAX F{{ character.floor|stringformat:"02d" }}</small>
+            <small>MAX S{{ character.floor|stringformat:"02d" }}</small>
           </div>
           <div class="quick-stats">
             <span><b><span class="lang-en">HP</span><span class="lang-fr">PV</span></b>{{ character.combat_max_hp }}</span>
@@ -81,8 +82,8 @@
             <div class="menu-section-label"><span class="lang-en">{{ section.label_en }}</span><span class="lang-fr">{{ section.label_fr }}</span></div>
             {% for entry in section.entries %}
               <a href="{{ entry.href }}" class="menu-entry menu-entry-{{ entry.code }}">
-                <span class="menu-glyph lang-en">{{ entry.marker_en }}</span>
-                <span class="menu-glyph lang-fr">{{ entry.marker_fr }}</span>
+                <span class="menu-glyph lang-en" data-glyph="{{ entry.marker_en }}" aria-hidden="true"></span>
+                <span class="menu-glyph lang-fr" data-glyph="{{ entry.marker_fr }}" aria-hidden="true"></span>
                 <span class="lang-en">{{ entry.label_en_rest }}</span><span class="lang-fr">{{ entry.label_fr_rest }}</span>
                 {% if entry.code == "guard" and character.guard_active %}<em>!</em>{% endif %}
               </a>
