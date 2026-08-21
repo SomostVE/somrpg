@@ -20,7 +20,7 @@ NAVIGATION = [
     NavigationEntry("explore", "Explore", "Donjon", "explore", 1, "core"),
     NavigationEntry("quests", "Quests", "Quêtes", "quests", 1, "core"),
     NavigationEntry("shop", "Sector Shop", "Boutique de secteur", "floor_shop", 1, "core"),
-    NavigationEntry("guard", "City Guard", "Garde de la ville", "city_guard", 2, "systems"),
+    NavigationEntry("guard", "City Guard", "Garde de la ville", "city_guard", 1, "systems"),
     NavigationEntry("workshop", "Workshop", "Atelier", "workshop", 3, "systems"),
     NavigationEntry("colony", "Colony", "Colonie", "colony", 2, "systems"),
     NavigationEntry("community", "Community", "Communauté", "community", 1, "network"),
