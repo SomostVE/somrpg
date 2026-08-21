@@ -19,13 +19,11 @@ NAVIGATION = [
     NavigationEntry("tower", "Tower", "Tour", "tower_map", 1, "core", "T"),
     NavigationEntry("explore", "Explore", "Donjon", "explore", 1, "core", "D"),
     NavigationEntry("shop", "Floor Shop", "Boutique d'étage", "floor_shop", 1, "core", "$"),
-    NavigationEntry("character", "Character", "Personnage", "character", 1, "player", "P"),
-    NavigationEntry("inventory", "Inventory", "Inventaire", "inventory", 1, "player", "I"),
-    NavigationEntry("codex", "Codex", "Codex", "codex", 1, "player", "X"),
+    NavigationEntry("profile", "Profile", "Profil", "profile", 1, "player", "P"),
     NavigationEntry("index", "Content Index", "Index du contenu", "content_index", 1, "data", "@"),
     NavigationEntry("guard", "City Guard", "Garde de la ville", "city_guard", 2, "systems", "G"),
     NavigationEntry("workshop", "Workshop", "Atelier", "workshop", 3, "systems", "A"),
-    NavigationEntry("town", "Town Systems", "Systèmes de ville", "classic:town", 5, "systems", "+"),
+    NavigationEntry("colony", "Colony", "Colonie", "colony", 2, "systems", "+"),
     NavigationEntry("community", "Community", "Communauté", "community", 1, "network", "#"),
 ]
 
