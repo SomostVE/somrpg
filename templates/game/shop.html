@@ -1,19 +1,19 @@
 {% extends "game/base.html" %}
 
-{% block title %}Shop - SomRPG{% endblock %}
+{% block title %}Sector Shop - SomRPG{% endblock %}
 
 {% block content %}
 <section class="retro-window page-window compact-intro">
-  <div class="window-title"><span class="lang-en">FLOOR SHOP</span><span class="lang-fr">BOUTIQUE D'ÉTAGE</span></div>
+  <div class="window-title"><span class="lang-en">SECTOR SHOP</span><span class="lang-fr">BOUTIQUE DE SECTEUR</span></div>
   <div class="page-body">
     <div class="shop-header-grid">
-      <div><p class="section-code">F{{ active_floor|stringformat:"02d" }}{% if tower_floor %} · {{ tower_floor.shop_name|upper }}{% endif %}</p><h1 class="page-title"><span class="lang-en">Stock</span><span class="lang-fr">Stock</span></h1></div>
+      <div><p class="section-code">S{{ active_floor|stringformat:"02d" }}{% if tower_floor %} · {{ tower_floor.shop_name|upper }}{% endif %}</p><h1 class="page-title"><span class="lang-en">Stock</span><span class="lang-fr">Stock</span></h1></div>
       <div class="shop-balance">{{ character.gold }} G</div>
     </div>
     <div class="floor-nav-bar">
-      {% if active_floor > 1 %}<form method="post" action="{% url 'travel_floor' active_floor|add:'-1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="floor_shop"><button class="button" type="submit">&lt; F{{ active_floor|add:'-1' }}</button></form>{% else %}<span></span>{% endif %}
-      <div class="floor-nav-center"><span class="lang-en">Shop floor</span><span class="lang-fr">Étage boutique</span><strong>F{{ active_floor|stringformat:"02d" }}</strong></div>
-      {% if active_floor < character.floor %}<form method="post" action="{% url 'travel_floor' active_floor|add:'1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="floor_shop"><button class="button" type="submit">F{{ active_floor|add:'1' }} &gt;</button></form>{% else %}<span></span>{% endif %}
+      {% if active_floor > 1 %}<form method="post" action="{% url 'travel_floor' active_floor|add:'-1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="floor_shop"><button class="button" type="submit">&lt; S{{ active_floor|add:'-1' }}</button></form>{% else %}<span></span>{% endif %}
+      <div class="floor-nav-center"><span class="lang-en">Shop sector</span><span class="lang-fr">Secteur de la boutique</span><strong>S{{ active_floor|stringformat:"02d" }}</strong></div>
+      {% if active_floor < character.floor %}<form method="post" action="{% url 'travel_floor' active_floor|add:'1' %}">{% csrf_token %}<input type="hidden" name="return_to" value="floor_shop"><button class="button" type="submit">S{{ active_floor|add:'1' }} &gt;</button></form>{% else %}<span></span>{% endif %}
     </div>
   </div>
 </section>
@@ -23,7 +23,7 @@
   <div class="page-body shop-grid">
     {% for offer in offers %}
       <article class="shop-card {% if offer.unlock_floor == active_floor %}new-stock{% endif %}">
-        <span class="stock-tag">F{{ offer.unlock_floor|stringformat:"02d" }}</span>
+        <span class="stock-tag">S{{ offer.unlock_floor|stringformat:"02d" }}</span>
         <h3>{{ offer.item.name }}</h3>
         <div class="shop-meta">
           <span>
