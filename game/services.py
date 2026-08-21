@@ -1,6 +1,25 @@
 import random
 from dataclasses import dataclass
-from .models import Character, Enemy, InventoryItem
+
+from django.db.models import Q
+from django.utils import timezone
+
+from .models import (
+    Character,
+    CodexDiscovery,
+    CommunitySeason,
+    Enemy,
+    InventoryItem,
+    Item,
+    SeasonProgress,
+)
+
+
+DUNGEON_COEFFICIENT = 1.0
+COMMERCE_COEFFICIENT = 2.0
+CRAFTING_COEFFICIENT = 2.0
+CODEX_COEFFICIENT = 0.5
+TOTAL_COEFFICIENT = DUNGEON_COEFFICIENT + COMMERCE_COEFFICIENT + CRAFTING_COEFFICIENT + CODEX_COEFFICIENT
 
 
 @dataclass
@@ -14,6 +33,64 @@ class CombatResult:
     levels_gained: int = 0
 
 
+def get_active_season():
+    now = timezone.now()
+    return (
+        CommunitySeason.objects.filter(active=True, starts_at__lte=now)
+        .filter(Q(ends_at__isnull=True) | Q(ends_at__gt=now))
+        .order_by("-starts_at")
+        .first()
+    )
+
+
+def get_season_progress(character: Character, season=None):
+    season = season or get_active_season()
+    if not season:
+        return None
+    progress, _ = SeasonProgress.objects.get_or_create(season=season, character=character)
+    return progress
+
+
+def add_season_progress(character: Character, dungeon=0, commerce=0, crafting=0):
+    progress = get_season_progress(character)
+    if not progress:
+        return
+    changed = []
+    if dungeon:
+        progress.dungeon_clears += dungeon
+        changed.append("dungeon_clears")
+    if commerce:
+        progress.commerce_gold += commerce
+        changed.append("commerce_gold")
+    if crafting:
+        progress.crafting_xp += crafting
+        changed.append("crafting_xp")
+    if changed:
+        changed.append("updated_at")
+        progress.save(update_fields=changed)
+
+
+def discover(character: Character, entry_type: str, entry_key, label: str):
+    discovery, created = CodexDiscovery.objects.get_or_create(
+        character=character,
+        entry_type=entry_type,
+        entry_key=str(entry_key),
+        defaults={"label": label},
+    )
+    if not created and discovery.label != label:
+        discovery.label = label
+        discovery.save(update_fields=["label"])
+    return created
+
+
+def discover_enemy(character: Character, enemy: Enemy):
+    return discover(character, "enemy", enemy.pk, enemy.name)
+
+
+def discover_item(character: Character, item: Item):
+    return discover(character, "item", item.pk, item.name)
+
+
 def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
     player_hp, enemy_hp = character.max_hp, enemy.max_hp
     rounds = []
@@ -21,23 +98,116 @@ def resolve_encounter(character: Character, enemy: Enemy) -> CombatResult:
         damage = max(1, character.total_attack - enemy.defense + random.randint(-1, 1))
         enemy_hp = max(0, enemy_hp - damage)
         rounds.append(f"Round {n}: {character.name} deals {damage} damage.")
-        if enemy_hp <= 0: break
+        if enemy_hp <= 0:
+            break
         damage = max(1, enemy.attack - character.total_defense + random.randint(-1, 1))
         player_hp = max(0, player_hp - damage)
         rounds.append(f"{enemy.name} deals {damage} damage.")
-        if player_hp <= 0: return CombatResult(False, enemy, rounds)
-    if enemy_hp > 0: return CombatResult(False, enemy, rounds)
+        if player_hp <= 0:
+            return CombatResult(False, enemy, rounds)
+    if enemy_hp > 0:
+        return CombatResult(False, enemy, rounds)
 
     gold = random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max))
     levels = character.grant_xp(enemy.xp_reward)
     character.gold += gold
+    character.total_gold_earned += gold
+    character.dungeon_clears += 1
     character.floor += 1
     character.save()
+    add_season_progress(character, dungeon=1, commerce=gold)
+
     loot_name = None
     if enemy.loot and random.randint(1, 100) <= enemy.loot_chance:
-        entry, created = InventoryItem.objects.get_or_create(character=character, item=enemy.loot, defaults={"quantity": 1})
+        entry, created = InventoryItem.objects.get_or_create(
+            character=character,
+            item=enemy.loot,
+            defaults={"quantity": 1},
+        )
         if not created:
             entry.quantity += 1
             entry.save(update_fields=["quantity"])
+        discover_item(character, enemy.loot)
         loot_name = enemy.loot.name
+
     return CombatResult(True, enemy, rounds, enemy.xp_reward, gold, loot_name, levels)
+
+
+def _normalized(value, maximum):
+    if maximum <= 0:
+        return 0.0
+    return value * 100.0 / maximum
+
+
+def _dense_ranks(rows, key):
+    ordered = sorted(rows, key=lambda row: (-row[key], row["display_name"].lower()))
+    result = {}
+    previous = None
+    rank = 0
+    for index, row in enumerate(ordered, start=1):
+        value = row[key]
+        if previous is None or value != previous:
+            rank = index
+            previous = value
+        result[row["character_id"]] = rank
+    return result
+
+
+def build_standings(season: CommunitySeason):
+    progresses = list(
+        SeasonProgress.objects.filter(season=season, character__user__isnull=False)
+        .select_related("character", "character__user", "character__user__discord_profile")
+    )
+
+    rows = []
+    for progress in progresses:
+        character = progress.character
+        profile = getattr(character.user, "discord_profile", None)
+        rows.append(
+            {
+                "character_id": character.id,
+                "character": character,
+                "display_name": profile.display_name if profile else character.name,
+                "dungeon_value": progress.dungeon_clears,
+                "commerce_value": progress.commerce_gold,
+                "crafting_value": progress.crafting_xp,
+                "codex_value": character.codex_completion,
+            }
+        )
+
+    max_dungeon = max((row["dungeon_value"] for row in rows), default=0)
+    max_commerce = max((row["commerce_value"] for row in rows), default=0)
+    max_crafting = max((row["crafting_value"] for row in rows), default=0)
+
+    for row in rows:
+        row["dungeon_score"] = _normalized(row["dungeon_value"], max_dungeon)
+        row["commerce_score"] = _normalized(row["commerce_value"], max_commerce)
+        row["crafting_score"] = _normalized(row["crafting_value"], max_crafting)
+        row["codex_score"] = row["codex_value"]
+        row["global_score"] = (
+            row["dungeon_score"] * DUNGEON_COEFFICIENT
+            + row["commerce_score"] * COMMERCE_COEFFICIENT
+            + row["crafting_score"] * CRAFTING_COEFFICIENT
+            + row["codex_score"] * CODEX_COEFFICIENT
+        ) / TOTAL_COEFFICIENT
+
+    dungeon_ranks = _dense_ranks(rows, "dungeon_value")
+    commerce_ranks = _dense_ranks(rows, "commerce_value")
+    crafting_ranks = _dense_ranks(rows, "crafting_value")
+    codex_ranks = _dense_ranks(rows, "codex_value")
+
+    rows.sort(key=lambda row: (-row["global_score"], row["display_name"].lower()))
+    previous_score = None
+    global_rank = 0
+    for index, row in enumerate(rows, start=1):
+        rounded = round(row["global_score"], 6)
+        if previous_score is None or rounded != previous_score:
+            global_rank = index
+            previous_score = rounded
+        row["global_rank"] = global_rank
+        row["dungeon_rank"] = dungeon_ranks[row["character_id"]]
+        row["commerce_rank"] = commerce_ranks[row["character_id"]]
+        row["crafting_rank"] = crafting_ranks[row["character_id"]]
+        row["codex_rank"] = codex_ranks[row["character_id"]]
+
+    return rows
