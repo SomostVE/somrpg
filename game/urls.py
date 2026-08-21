@@ -1,25 +1,30 @@
 from django.urls import path
 
-from . import api_views, index_views, views
+from . import api_views, colony_views, index_views, profile_views, views
 
 
 urlpatterns = [
     path("", views.home, name="home"),
     path("start/", views.create_character, name="create_character"),
-    path("character/", views.character_sheet, name="character"),
+    path("profile/", profile_views.profile, name="profile"),
+    path("character/", profile_views.profile, name="character"),
+    path("inventory/", profile_views.profile, name="inventory"),
+    path("codex/", profile_views.profile, name="codex"),
+    path("inventory/<int:entry_id>/equip/", views.toggle_equip, name="toggle_equip"),
+    path("inventory/<int:entry_id>/sell/", profile_views.sell_inventory_item, name="sell_inventory_item"),
     path("tower/", views.tower_map, name="tower_map"),
     path("tower/<int:floor_number>/travel/", views.travel_floor, name="travel_floor"),
     path("shop/", views.floor_shop, name="floor_shop"),
     path("shop/<int:offer_id>/buy/", views.buy_floor_shop_item, name="buy_floor_shop_item"),
-    path("inventory/", views.inventory, name="inventory"),
-    path("inventory/<int:entry_id>/equip/", views.toggle_equip, name="toggle_equip"),
     path("guard/", views.city_guard, name="city_guard"),
     path("guard/start/", views.guard_start, name="guard_start"),
     path("guard/stop/", views.guard_stop, name="guard_stop"),
     path("explore/", views.explore, name="explore"),
     path("workshop/", views.workshop, name="workshop"),
     path("workshop/craft/<int:recipe_id>/", views.craft_recipe, name="craft_recipe"),
-    path("codex/", views.codex, name="codex"),
+    path("colony/", colony_views.colony, name="colony"),
+    path("colony/upgrade/", colony_views.colony_upgrade, name="colony_upgrade"),
+    path("colony/collect/", colony_views.colony_collect, name="colony_collect"),
     path("index/", index_views.content_index, name="content_index"),
     path("community/", views.community, name="community"),
     path("api/version/", api_views.version_status, name="version_status"),
