@@ -21,7 +21,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "game",
-    "classic",
+    "classic.apps.ClassicConfig",
 ]
 
 MIDDLEWARE = [
