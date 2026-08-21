@@ -17,13 +17,13 @@
   <link rel="stylesheet" href="{% static 'css/v090-visual.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
-  <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}&ui=4">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-content-v080.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-polish-v080.js' %}?v={{ version }}"></script>
-  <script defer src="{% static 'js/notifications.js' %}?v={{ version }}"></script>
+  <script defer src="{% static 'js/notifications.js' %}?v={{ version }}&ui=4"></script>
   <script defer src="{% static 'js/live-shell.js' %}?v={{ version }}"></script>
 </head>
 <body data-app-version="{{ version }}" data-version-url="{% url 'version_status' %}" data-chat-url="{% url 'live_chat' %}">
@@ -145,7 +145,7 @@
     <div id="notification-stack" class="notification-stack" aria-live="polite" aria-atomic="false">
       {% for message in messages %}
       <div class="system-toast toast-{{ message.tags|default:'info' }}" data-toast>
-        <div class="system-toast-head"><strong>SYSTÈME / SYSTEM</strong><button type="button" data-toast-close aria-label="Close">×</button></div>
+        <div class="system-toast-head"><strong><span class="lang-en">SYSTEM</span><span class="lang-fr">SYSTÈME</span></strong><button type="button" data-toast-close aria-label="Close">×</button></div>
         <p>{{ message }}</p>
       </div>
       {% endfor %}
