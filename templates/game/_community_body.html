@@ -1,0 +1,88 @@
+<section class="retro-window page-window">
+  <div class="window-title">COMMUNITY EVENT</div>
+  <div class="page-body">
+    {% if season %}
+      <p class="section-code">ACTIVE SEASON // {{ season.name|upper }}</p>
+    {% else %}
+      <p class="section-code">NO ACTIVE SEASON</p>
+    {% endif %}
+    <h1 class="page-title">Global Rankings</h1>
+
+    <p class="story-text">
+      Global points combine four independent rankings. Each activity is normalized to 100 points before coefficients are applied,
+      so raw values from different systems remain comparable.
+    </p>
+
+    <div class="coefficient-grid">
+      <div><span>DUNGEON</span><strong>×1</strong><small>Floors cleared</small></div>
+      <div><span>COMMERCE</span><strong>×2</strong><small>Total gold earned</small></div>
+      <div><span>CRAFTING</span><strong>×2</strong><small>Crafting XP earned</small></div>
+      <div><span>CODEX</span><strong>×0.5</strong><small>Discovery completion</small></div>
+    </div>
+
+    {% if not request.user.is_authenticated %}
+      <div class="network-callout">
+        <strong>COMMUNITY ACCOUNT REQUIRED</strong>
+        <p>Connect with Discord to create a persistent community identity and enter seasonal rankings.</p>
+        {% if discord_configured %}
+          <a class="button primary" href="{% url 'discord_login' %}">&gt; Connect with Discord</a>
+        {% else %}
+          <p class="command-note">Discord OAuth is not configured on this server yet.</p>
+        {% endif %}
+      </div>
+    {% elif not character %}
+      <div class="network-callout">
+        <strong>ACCOUNT CONNECTED</strong>
+        <p>Your Discord identity is ready. Create a SomRPG character to enter the event.</p>
+        <a class="button primary" href="{% url 'create_character' %}">&gt; Create character</a>
+      </div>
+    {% elif own_row %}
+      <div class="personal-ranking">
+        <div><span>GLOBAL RANK</span><strong>#{{ own_row.global_rank }}</strong></div>
+        <div><span>GLOBAL POINTS</span><strong>{{ own_row.global_score|floatformat:2 }}</strong></div>
+        <div><span>DUNGEON</span><strong>#{{ own_row.dungeon_rank }}</strong></div>
+        <div><span>COMMERCE</span><strong>#{{ own_row.commerce_rank }}</strong></div>
+        <div><span>CRAFTING</span><strong>#{{ own_row.crafting_rank }}</strong></div>
+        <div><span>CODEX</span><strong>#{{ own_row.codex_rank }}</strong></div>
+      </div>
+    {% endif %}
+  </div>
+</section>
+
+{% if season %}
+<section class="retro-window page-window">
+  <div class="window-title">SEASON STANDINGS</div>
+  <div class="page-body ranking-scroll">
+    {% if standings %}
+    <table class="ranking-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>PLAYER</th>
+          <th>GLOBAL</th>
+          <th>DUNGEON ×1</th>
+          <th>COMMERCE ×2</th>
+          <th>CRAFT ×2</th>
+          <th>CODEX ×0.5</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in standings %}
+        <tr{% if character and row.character_id == character.id %} class="current-player"{% endif %}>
+          <td>#{{ row.global_rank }}</td>
+          <td><strong>{{ row.display_name }}</strong><small>{{ row.character.name }}</small></td>
+          <td><strong>{{ row.global_score|floatformat:2 }}</strong></td>
+          <td>#{{ row.dungeon_rank }}<small>{{ row.dungeon_value }} clears / {{ row.dungeon_score|floatformat:1 }} pts</small></td>
+          <td>#{{ row.commerce_rank }}<small>{{ row.commerce_value }} gold / {{ row.commerce_score|floatformat:1 }} pts</small></td>
+          <td>#{{ row.crafting_rank }}<small>{{ row.crafting_value }} XP / {{ row.crafting_score|floatformat:1 }} pts</small></td>
+          <td>#{{ row.codex_rank }}<small>{{ row.codex_value|floatformat:1 }}% / {{ row.codex_score|floatformat:1 }} pts</small></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+      <p class="empty-text">No ranked adventurer has joined this season yet.</p>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
