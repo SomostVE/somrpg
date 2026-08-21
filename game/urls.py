@@ -8,6 +8,7 @@ urlpatterns = [
     path("start/", views.create_character, name="create_character"),
     path("character/", views.character_sheet, name="character"),
     path("tower/", views.tower_map, name="tower_map"),
+    path("tower/<int:floor_number>/travel/", views.travel_floor, name="travel_floor"),
     path("shop/", views.floor_shop, name="floor_shop"),
     path("shop/<int:offer_id>/buy/", views.buy_floor_shop_item, name="buy_floor_shop_item"),
     path("inventory/", views.inventory, name="inventory"),
