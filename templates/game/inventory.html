@@ -1,1 +1,53 @@
-{% extends "game/base.html" %}{% block content %}<section class="panel"><p class="eyebrow">INVENTORY</p><h1>Recovered items</h1>{% if entries %}<div class="item-list">{% for entry in entries %}<article class="item-card rarity-{{ entry.item.rarity }}"><div><strong>{{ entry.item.name }}</strong><p>{{ entry.item.description }}</p><small>{{ entry.item.get_rarity_display }} · x{{ entry.quantity }}{% if entry.item.attack_bonus %} · +{{ entry.item.attack_bonus }} ATK{% endif %}{% if entry.item.defense_bonus %} · +{{ entry.item.defense_bonus }} DEF{% endif %}</small></div><form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}Unequip{% else %}Equip{% endif %}</button></form></article>{% endfor %}</div>{% else %}<p class="muted">The inventory is empty. Explore the dungeon to find loot.</p>{% endif %}</section>{% endblock %}
+{% extends "game/base.html" %}
+
+{% block title %}Inventory - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">INVENTORY CHEST</div>
+  <div class="page-body">
+    <p class="section-code">RECOVERED MATERIAL // EQUIPMENT</p>
+    <h1 class="page-title">Inventory</h1>
+
+    <p class="story-text">
+      Recovered objects are catalogued here. Equip useful pieces before advancing deeper into the dungeon.
+    </p>
+
+    {% if entries %}
+    <div class="item-list">
+      {% for entry in entries %}
+      <article class="item-card rarity-{{ entry.item.rarity }}">
+        <div>
+          <strong class="item-name">{{ entry.item.name }}</strong>
+          <p>{{ entry.item.description }}</p>
+          <small>
+            {{ entry.item.get_rarity_display|upper }} · QTY {{ entry.quantity }}
+            {% if entry.item.attack_bonus %} · ATK +{{ entry.item.attack_bonus }}{% endif %}
+            {% if entry.item.defense_bonus %} · DEF +{{ entry.item.defense_bonus }}{% endif %}
+            {% if entry.equipped %} · EQUIPPED{% endif %}
+          </small>
+        </div>
+        <form method="post" action="{% url 'toggle_equip' entry.id %}">
+          {% csrf_token %}
+          <button class="button" type="submit">{% if entry.equipped %}Unequip{% else %}Equip{% endif %}</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-text">[EMPTY] No recovered items are stored in the chest.</p>
+    {% endif %}
+  </div>
+</section>
+
+<section class="retro-window help-window">
+  <div class="window-title">EQUIPMENT NOTES</div>
+  <div class="page-body">
+    <ul class="text-list">
+      <li>Equipment currently grants passive attack or defense bonuses.</li>
+      <li>Item rarity is indicated by the colored line on the left side of each record.</li>
+      <li>Weapon, armor and accessory slots will be separated in a later build.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
