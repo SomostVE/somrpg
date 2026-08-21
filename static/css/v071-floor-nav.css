@@ -1,0 +1,74 @@
+.floor-chip {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+}
+.floor-chip > span {
+  color: var(--gold);
+  font: 700 .9rem/1 "Courier New", monospace;
+}
+.floor-chip > strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.floor-chip > small {
+  color: var(--muted);
+  font: .61rem/1 "Courier New", monospace;
+}
+
+.floor-nav-bar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: center;
+  margin: 8px 0;
+}
+.floor-nav-center {
+  text-align: center;
+  color: var(--muted);
+  font: .72rem/1.25 "Courier New", monospace;
+}
+.floor-nav-center strong {
+  display: block;
+  color: var(--gold);
+  font-size: .9rem;
+}
+.floor-nav-bar form { margin: 0; }
+.floor-nav-bar .button { min-height: 32px; padding: 5px 9px; }
+
+.tower-list.compact-floor-list {
+  gap: 5px;
+}
+.compact-floor-list .floor-card {
+  grid-template-columns: 50px minmax(0, 1fr) auto;
+  min-height: 50px;
+  padding: 6px 8px;
+}
+.compact-floor-list .floor-card h3 { margin: 0; font-size: .88rem; }
+.compact-floor-list .floor-card p { margin: 2px 0 0; font-size: .68rem; }
+.floor-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.floor-actions form { margin: 0; }
+.floor-actions .button { min-height: 29px; padding: 4px 8px; font-size: .7rem; }
+.floor-state-current { color: var(--gold); }
+.floor-state-frontier { color: var(--cyan); }
+.floor-state-cleared { color: var(--green); }
+.floor-state-locked { color: var(--muted); }
+
+.compact-intro .page-body { padding-top: 8px; padding-bottom: 8px; }
+.compact-intro .page-title { margin-bottom: 4px; }
+.compact-intro .story-text { margin: 0; }
+
+@media (max-width: 680px) {
+  .floor-nav-bar { grid-template-columns: 1fr 1fr; }
+  .floor-nav-center { grid-column: 1 / -1; grid-row: 1; }
+  .floor-nav-bar form { width: 100%; }
+  .floor-nav-bar .button { width: 100%; }
+  .compact-floor-list .floor-card { grid-template-columns: 44px minmax(0, 1fr); }
+  .compact-floor-list .floor-actions { grid-column: 1 / -1; justify-content: flex-end; }
+}

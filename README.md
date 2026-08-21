@@ -1,6 +1,6 @@
 # SomRPG
 
-SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s menu-driven RPGs. Its main progression is now an original floor-based tower ascent: every floor can introduce a new region, enemies, shop stock and progression gate.
+SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s menu-driven RPGs. Its main progression is an original floor-based tower ascent: every floor can introduce a new region, enemies, shop stock and progression gate.
 
 ## Stack
 
@@ -12,31 +12,28 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.7.0
+## Current milestone — v0.7.1
 
 ### Tower ascent
 
 - 20 authored floors form the first tower sector.
-- Every floor has its own name, biome, description and market identity.
-- Enemy pools are restricted by floor ranges instead of using one universal encounter forever.
+- Every floor has its own name, biome and market identity.
+- Players can travel freely between every unlocked floor without losing their highest progression.
+- Revisited floors use their normal encounter pool; cleared boss gates do not block return visits.
 - Major progression bosses currently guard Floors 5, 10, 15 and 20.
-- Clearing an encounter opens the next floor.
-- The Tower screen shows cleared, current and near-future floors.
+- Clearing the highest unlocked floor opens the next floor.
 - Floor discovery is recorded automatically in the Codex.
 
-### Progressive floor shops
+### Floor shops
 
-Shop progression is tied to the highest floor reached.
+Shop stock follows the currently selected floor.
 
-- New equipment unlocks at specific floors.
-- Previously unlocked stock remains available after climbing higher.
-- The initial stock progression spans Floor 1 through Floor 20.
+- New equipment becomes available as higher floors are unlocked.
+- Travelling back to a lower floor displays the stock available at that point in the tower.
 - Shop price and unlock floor are data-driven and editable from Django Admin.
-- Buying or spending gold does not reduce the Commerce ranking, which continues to track gross gold earned.
+- Buying or spending gold does not reduce the Commerce ranking, which tracks gross gold earned.
 
 ### Character builds and equipment
-
-v0.7.0 introduces the first build layer:
 
 - Vanguard: additional HP and Defense.
 - Strider: additional Attack.
@@ -44,15 +41,11 @@ v0.7.0 introduces the first build layer:
 - Equipment slots for weapon, head, body, hands, feet and accessory.
 - Only one item can be equipped per slot.
 - Gear can roll floor-scaled random affixes when acquired.
-- Higher floors make stronger affixes eligible.
-
-These archetypes and affixes are deliberately simple prototypes and can be rebalanced or replaced later.
 
 ### Evolvable menu
 
 The left navigation is generated from a central registry instead of being hardcoded into the base template.
 
-- Core ascent features are available immediately.
 - City Guard unlocks at Floor 2.
 - Workshop unlocks at Floor 3.
 - The broader Town systems laboratory unlocks at Floor 5.
@@ -61,6 +54,9 @@ The left navigation is generated from a central registry instead of being hardco
 ### Interface
 
 - English and French interface with a persistent FR / EN selector.
+- Core screens now use explicit bilingual labels instead of relying on partial text replacement.
+- Runtime combat/system messages receive a dedicated FR translation layer.
+- Explanatory copy has been reduced in favor of compact status, actions and navigation.
 - Three-column desktop shell: compact player/menu rail, central game content and authenticated live chat on the right.
 - Responsive tablet/mobile layout.
 - Static assets are versioned and the browser polls `/api/version/` so running clients reload automatically when SomRPG changes version.
@@ -94,7 +90,7 @@ Discord-connected players can participate in an active community season. Global 
 
 | Category | Measurement | Coefficient |
 | --- | --- | ---: |
-| Dungeon | Floors cleared during the season | ×1 |
+| Dungeon | New floors unlocked during the season | ×1 |
 | Commerce | Total gold earned during the season | ×2 |
 | Crafting | Crafting XP earned during the season | ×2 |
 | Codex | Discovery completion percentage | ×0.5 |
@@ -136,7 +132,7 @@ Persistent game data is stored in `./data`. Live chat is intentionally excluded 
 
 ## Administration
 
-Django Admin exposes tower floors, bosses, progressive shop offers, core game data, community systems and the `classic` laboratory so content and balancing can evolve without hardcoding every change.
+Django Admin exposes tower floors, bosses, floor shop offers, core game data, community systems and the `classic` laboratory so content and balancing can evolve without hardcoding every change.
 
 ## Branch cleanup
 

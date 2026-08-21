@@ -3,37 +3,23 @@
 {% block title %}New Record - SomRPG{% endblock %}
 
 {% block standalone_content %}
-<section class="retro-window page-window">
-  <div class="window-title"><span class="lang-en">ADVENTURER REGISTRATION</span><span class="lang-fr">ENREGISTREMENT DE L'AVENTURIER</span></div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">NEW ADVENTURER</span><span class="lang-fr">NOUVEL AVENTURIER</span></div>
   <div class="page-body">
-    <p class="section-code"><span class="lang-en">NEW RECORD // FLOOR 01 // TOWER ASCENT</span><span class="lang-fr">NOUVEAU DOSSIER // ÉTAGE 01 // ASCENSION DE LA TOUR</span></p>
-    <h1 class="page-title"><span class="lang-en">Create your adventurer</span><span class="lang-fr">Créez votre aventurier</span></h1>
-
-    <p class="story-text">
-      <span class="lang-en">The tower is divided into independent floors. Every new floor can introduce another region, stronger enemies, new shop stock and a boss gate.</span>
-      <span class="lang-fr">La tour est divisée en étages indépendants. Chaque nouvel étage peut introduire une région, des ennemis plus puissants, de nouveaux objets en boutique et un boss de palier.</span>
-    </p>
-
+    <h1 class="page-title"><span class="lang-en">Enter the Tower</span><span class="lang-fr">Entrer dans la Tour</span></h1>
     <div class="class-grid">
-      <div class="class-card"><strong>VANGUARD</strong><span>+10 HP · +2 DEF</span></div>
-      <div class="class-card"><strong>STRIDER</strong><span>+2 ATK · <span class="lang-en">balanced HP</span><span class="lang-fr">PV standards</span></span></div>
-      <div class="class-card"><strong>ARCANIST</strong><span>+3 ATK · -5 HP</span></div>
+      <div class="class-card"><strong><span class="lang-en">VANGUARD</span><span class="lang-fr">AVANT-GARDE</span></strong><span>+10 HP · +2 DEF</span></div>
+      <div class="class-card"><strong><span class="lang-en">STRIDER</span><span class="lang-fr">ÉCLAIREUR</span></strong><span>+2 ATK</span></div>
+      <div class="class-card"><strong><span class="lang-en">ARCANIST</span><span class="lang-fr">ARCANISTE</span></strong><span>+3 ATK · -5 HP</span></div>
     </div>
-
-    <hr class="divider">
-
     <form method="post" class="stacked-form">
       {% csrf_token %}
-      {{ form.name.label_tag }}
-      {{ form.name }}
-      {{ form.name.errors }}
-      {{ form.archetype.label_tag }}
-      {{ form.archetype }}
-      {{ form.archetype.errors }}
-      <button class="button primary" type="submit"><span class="lang-en">&gt; Register and enter Floor 1</span><span class="lang-fr">&gt; S'enregistrer et entrer à l'étage 1</span></button>
+      <label for="{{ form.name.id_for_label }}"><span class="lang-en">Name</span><span class="lang-fr">Nom</span></label>
+      {{ form.name }}{{ form.name.errors }}
+      <label for="{{ form.archetype.id_for_label }}"><span class="lang-en">Class</span><span class="lang-fr">Classe</span></label>
+      {{ form.archetype }}{{ form.archetype.errors }}
+      <button class="button primary" type="submit"><span class="lang-en">Start on Floor 1</span><span class="lang-fr">Commencer à l'étage 1</span></button>
     </form>
-
-    <p class="command-note"><span class="lang-en">ARCHETYPE BONUSES ARE PASSIVE AND CAN BE REBALANCED LATER.</span><span class="lang-fr">LES BONUS D'ARCHÉTYPE SONT PASSIFS ET POURRONT ÊTRE RÉÉQUILIBRÉS PLUS TARD.</span></p>
   </div>
 </section>
 {% endblock %}

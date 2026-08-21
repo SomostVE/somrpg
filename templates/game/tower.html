@@ -3,41 +3,40 @@
 {% block title %}Tower - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title"><span class="lang-en">TOWER ASCENT DIRECTORY</span><span class="lang-fr">RÉPERTOIRE DE L'ASCENSION</span></div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">TOWER</span><span class="lang-fr">TOUR</span></div>
   <div class="page-body">
-    <p class="section-code"><span class="lang-en">PROGRESSION MAP // CURRENT FLOOR {{ character.floor }}</span><span class="lang-fr">CARTE DE PROGRESSION // ÉTAGE ACTUEL {{ character.floor }}</span></p>
-    <h1 class="page-title"><span class="lang-en">The Tower</span><span class="lang-fr">La Tour</span></h1>
-    <p class="story-text">
-      <span class="lang-en">Each floor is its own region. Reaching higher floors opens new shops, stronger equipment, new enemies and major boss gates.</span>
-      <span class="lang-fr">Chaque étage est une région à part entière. Atteindre les étages supérieurs ouvre de nouvelles boutiques, de meilleurs équipements, de nouveaux ennemis et des boss de palier.</span>
-    </p>
+    <h1 class="page-title"><span class="lang-en">Floor map</span><span class="lang-fr">Carte des étages</span></h1>
+    <p class="story-text"><span class="lang-en">Travel freely between unlocked floors.</span><span class="lang-fr">Déplacez-vous librement entre les étages débloqués.</span></p>
   </div>
 </section>
 
 <section class="retro-window page-window">
-  <div class="window-title"><span class="lang-en">CHARTED FLOORS</span><span class="lang-fr">ÉTAGES CARTOGRAPHIÉS</span></div>
-  <div class="page-body tower-list">
+  <div class="window-title"><span class="lang-en">FLOORS</span><span class="lang-fr">ÉTAGES</span> · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</div>
+  <div class="page-body tower-list compact-floor-list">
     {% for floor in floors %}
-      <article class="floor-card {% if floor.floor_number < character.floor %}cleared{% elif floor.floor_number == character.floor %}current{% else %}locked{% endif %}{% if floor.has_boss %} boss-floor{% endif %}">
+      <article class="floor-card {% if floor.floor_number == active_floor %}current{% elif floor.floor_number <= character.floor %}cleared{% else %}locked{% endif %}{% if floor.has_boss %} boss-floor{% endif %}">
         <div class="floor-index">F{{ floor.floor_number|stringformat:"02d" }}</div>
         <div>
           <h3>{{ floor.name }}</h3>
-          <p>{{ floor.biome|upper }} · {{ floor.description }}</p>
+          <p>{{ floor.biome|upper }}{% if floor.has_boss %} · BOSS{% endif %}</p>
         </div>
-        <div class="floor-state">
-          {% if floor.floor_number < character.floor %}
-            <span class="lang-en">CLEARED</span><span class="lang-fr">TERMINÉ</span>
-          {% elif floor.floor_number == character.floor %}
-            <span class="lang-en">CURRENT</span><span class="lang-fr">ACTUEL</span>
-            {% if floor.has_boss %}<br>{{ floor.boss_gate.enemy.name }}{% endif %}
+        <div class="floor-actions">
+          {% if floor.floor_number == active_floor %}
+            <strong class="floor-state-current"><span class="lang-en">HERE</span><span class="lang-fr">ICI</span></strong>
+          {% elif floor.floor_number <= character.floor %}
+            {% if floor.floor_number == character.floor %}<span class="floor-state-frontier"><span class="lang-en">FRONTIER</span><span class="lang-fr">FRONTIÈRE</span></span>{% endif %}
+            <form method="post" action="{% url 'travel_floor' floor.floor_number %}">
+              {% csrf_token %}
+              <button class="button" type="submit"><span class="lang-en">Travel</span><span class="lang-fr">Aller</span></button>
+            </form>
           {% else %}
-            <span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span>
+            <span class="floor-state-locked"><span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span></span>
           {% endif %}
         </div>
       </article>
     {% empty %}
-      <p class="empty-text"><span class="lang-en">No floor data is configured.</span><span class="lang-fr">Aucune donnée d'étage n'est configurée.</span></p>
+      <p class="empty-text"><span class="lang-en">No floor data.</span><span class="lang-fr">Aucun étage configuré.</span></p>
     {% endfor %}
   </div>
 </section>
