@@ -1,0 +1,249 @@
+.system-meta a {
+  color: var(--cyan);
+  text-decoration: underline;
+}
+
+.account-form {
+  margin: 0;
+}
+
+.text-command {
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--line-dim);
+  background: var(--panel-low);
+  color: var(--muted);
+  text-align: left;
+  font-family: "Courier New", monospace;
+  cursor: pointer;
+}
+
+.text-command:hover,
+.text-command:focus-visible {
+  border-color: var(--line);
+  color: var(--text);
+  outline: none;
+}
+
+.standalone-community-link {
+  padding: 0 13px 13px;
+}
+
+.standalone-community-link .page-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.coefficient-grid,
+.personal-ranking {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+  margin: 14px 0;
+}
+
+.coefficient-grid > div,
+.personal-ranking > div {
+  min-width: 0;
+  padding: 9px;
+  border: 1px solid var(--line-dim);
+  background: rgba(255,255,255,0.018);
+  font-family: "Courier New", monospace;
+}
+
+.coefficient-grid span,
+.personal-ranking span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.73rem;
+}
+
+.coefficient-grid strong,
+.personal-ranking strong {
+  display: block;
+  margin: 3px 0;
+  color: var(--gold);
+  font-size: 1.08rem;
+}
+
+.coefficient-grid small {
+  display: block;
+  color: #a9bad1;
+  line-height: 1.35;
+}
+
+.personal-ranking {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.network-callout {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-left: 3px solid var(--cyan);
+  background: rgba(133,215,255,0.035);
+}
+
+.network-callout > strong {
+  color: var(--cyan);
+  font-family: "Courier New", monospace;
+}
+
+.network-callout p {
+  margin: 7px 0 10px;
+  color: #c9d8ee;
+}
+
+.ranking-scroll {
+  overflow-x: auto;
+}
+
+.ranking-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: collapse;
+  font-family: "Courier New", monospace;
+  font-size: 0.82rem;
+}
+
+.ranking-table th,
+.ranking-table td {
+  padding: 8px 9px;
+  border: 1px solid var(--line-dim);
+  text-align: left;
+  vertical-align: top;
+}
+
+.ranking-table th {
+  color: var(--cyan);
+  background: #10223a;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.ranking-table td {
+  color: var(--text);
+  background: rgba(255,255,255,0.012);
+}
+
+.ranking-table td > small,
+.ranking-table td > strong {
+  display: block;
+}
+
+.ranking-table td > small {
+  margin-top: 3px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.ranking-table td:nth-child(1),
+.ranking-table td:nth-child(3) {
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.ranking-table tr.current-player td {
+  background: rgba(255, 210, 119, 0.07);
+  border-color: #6f5730;
+}
+
+.recipe-list {
+  display: grid;
+  gap: 8px;
+}
+
+.recipe-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--line-dim);
+  background: rgba(255,255,255,0.018);
+}
+
+.recipe-name {
+  color: #f5f8ff;
+  font-family: "Courier New", monospace;
+}
+
+.recipe-card p {
+  margin: 4px 0;
+  color: #bdcde2;
+}
+
+.recipe-card small {
+  color: var(--muted);
+  font-family: "Courier New", monospace;
+}
+
+.codex-meter {
+  height: 16px;
+  margin: 12px 0;
+  border: 1px solid var(--line);
+  background: #030912;
+  overflow: hidden;
+}
+
+.codex-meter-fill {
+  height: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    #376d8c 0,
+    #376d8c 10px,
+    #4d88a9 10px,
+    #4d88a9 20px
+  );
+}
+
+.codex-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.codex-list {
+  display: grid;
+  gap: 4px;
+}
+
+.codex-list > div {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 9px;
+  padding: 6px 8px;
+  border-bottom: 1px dotted var(--line-dim);
+  font-family: "Courier New", monospace;
+}
+
+.codex-list span {
+  color: var(--green);
+  font-size: 0.75rem;
+}
+
+.codex-list strong {
+  color: var(--text);
+}
+
+@media (max-width: 850px) {
+  .coefficient-grid,
+  .personal-ranking,
+  .codex-columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .coefficient-grid,
+  .personal-ranking,
+  .codex-columns,
+  .recipe-card {
+    grid-template-columns: 1fr;
+  }
+
+  .recipe-card .button {
+    width: 100%;
+  }
+}

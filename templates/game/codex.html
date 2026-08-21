@@ -1,0 +1,50 @@
+{% extends "game/base.html" %}
+
+{% block title %}Codex - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">CODEX</div>
+  <div class="page-body">
+    <p class="section-code">PASSIVE DISCOVERY // RANKING COEFFICIENT ×0.5</p>
+    <h1 class="page-title">Archive Completion</h1>
+    <p class="story-text">
+      The Codex fills itself while you play. Encounter enemies, recover loot, and craft new items; no separate grind is required.
+    </p>
+
+    <div class="codex-meter" aria-label="Codex completion">
+      <div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div>
+    </div>
+    <div class="data-grid">
+      <div class="data-row"><span>COMPLETION</span><strong>{{ completion|floatformat:1 }}%</strong></div>
+      <div class="data-row"><span>DISCOVERED</span><strong>{{ discovered_entries }} / {{ total_entries }}</strong></div>
+      <div class="data-row"><span>ENEMIES</span><strong>{{ enemy_entries|length }} / {{ enemy_total }}</strong></div>
+      <div class="data-row"><span>ITEMS</span><strong>{{ item_entries|length }} / {{ item_total }}</strong></div>
+    </div>
+  </div>
+</section>
+
+<div class="codex-columns">
+  <section class="retro-window page-window">
+    <div class="window-title">BESTIARY</div>
+    <div class="page-body codex-list">
+      {% for entry in enemy_entries %}
+        <div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>
+      {% empty %}
+        <p class="empty-text">No enemy has been catalogued yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="retro-window page-window">
+    <div class="window-title">ITEM ARCHIVE</div>
+    <div class="page-body codex-list">
+      {% for entry in item_entries %}
+        <div><span>[FOUND]</span><strong>{{ entry.label }}</strong></div>
+      {% empty %}
+        <p class="empty-text">No item has been catalogued yet.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

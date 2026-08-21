@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
@@ -7,7 +8,13 @@ GUARD_RESOURCE_INTERVAL_SECONDS = 30 * 60
 
 
 class Item(models.Model):
-    RARITY_CHOICES = [("common", "Common"), ("uncommon", "Uncommon"), ("rare", "Rare"), ("epic", "Epic"), ("legendary", "Legendary")]
+    RARITY_CHOICES = [
+        ("common", "Common"),
+        ("uncommon", "Uncommon"),
+        ("rare", "Rare"),
+        ("epic", "Epic"),
+        ("legendary", "Legendary"),
+    ]
     name = models.CharField(max_length=80, unique=True)
     description = models.CharField(max_length=240, blank=True)
     rarity = models.CharField(max_length=16, choices=RARITY_CHOICES, default="common")
@@ -39,6 +46,13 @@ class Enemy(models.Model):
 
 
 class Character(models.Model):
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        related_name="somrpg_character",
+        on_delete=models.CASCADE,
+    )
     name = models.CharField(max_length=40, default="Adventurer")
     level = models.PositiveIntegerField(default=1)
     xp = models.PositiveIntegerField(default=0)
@@ -47,6 +61,10 @@ class Character(models.Model):
     attack = models.PositiveIntegerField(default=5)
     defense = models.PositiveIntegerField(default=1)
     floor = models.PositiveIntegerField(default=1)
+
+    dungeon_clears = models.PositiveBigIntegerField(default=0)
+    total_gold_earned = models.PositiveBigIntegerField(default=0)
+    crafting_xp = models.PositiveBigIntegerField(default=0)
 
     guard_started_at = models.DateTimeField(null=True, blank=True)
     guard_gold_progress_seconds = models.PositiveIntegerField(default=0)
@@ -82,6 +100,14 @@ class Character(models.Model):
     def guard_active(self):
         return self.guard_started_at is not None
 
+    @property
+    def codex_completion(self):
+        total = Enemy.objects.filter(enabled=True).count() + Item.objects.count()
+        if total == 0:
+            return 0.0
+        discovered = self.codex_discoveries.count()
+        return min(100.0, discovered * 100.0 / total)
+
     def guard_elapsed_seconds(self, now=None):
         if not self.guard_started_at:
             return 0
@@ -111,13 +137,13 @@ class Character(models.Model):
 
         now = timezone.now()
         elapsed = self.guard_elapsed_seconds(now)
-
         gold_seconds = self.guard_gold_progress_seconds + elapsed
         resource_seconds = self.guard_resource_progress_seconds + elapsed
         gold_reward, self.guard_gold_progress_seconds = divmod(gold_seconds, GUARD_GOLD_INTERVAL_SECONDS)
         resource_reward, self.guard_resource_progress_seconds = divmod(resource_seconds, GUARD_RESOURCE_INTERVAL_SECONDS)
 
         self.gold += gold_reward
+        self.total_gold_earned += gold_reward
         self.guard_resources += resource_reward
         self.guard_total_seconds += elapsed
         self.guard_shifts_completed += 1
@@ -152,3 +178,95 @@ class InventoryItem(models.Model):
 
     def __str__(self):
         return f"{self.character} - {self.item} x{self.quantity}"
+
+
+class DiscordProfile(models.Model):
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, related_name="discord_profile", on_delete=models.CASCADE)
+    discord_id = models.CharField(max_length=32, unique=True)
+    username = models.CharField(max_length=80)
+    global_name = models.CharField(max_length=80, blank=True)
+    avatar = models.CharField(max_length=128, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @property
+    def display_name(self):
+        return self.global_name or self.username
+
+    def __str__(self):
+        return f"{self.display_name} ({self.discord_id})"
+
+
+class CommunitySeason(models.Model):
+    name = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
+    starts_at = models.DateTimeField(default=timezone.now)
+    ends_at = models.DateTimeField(null=True, blank=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-starts_at"]
+
+    @property
+    def is_open(self):
+        now = timezone.now()
+        return self.active and self.starts_at <= now and (self.ends_at is None or self.ends_at > now)
+
+    def __str__(self):
+        return self.name
+
+
+class SeasonProgress(models.Model):
+    season = models.ForeignKey(CommunitySeason, related_name="progress_entries", on_delete=models.CASCADE)
+    character = models.ForeignKey(Character, related_name="season_progress", on_delete=models.CASCADE)
+    dungeon_clears = models.PositiveBigIntegerField(default=0)
+    commerce_gold = models.PositiveBigIntegerField(default=0)
+    crafting_xp = models.PositiveBigIntegerField(default=0)
+    joined_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["season", "character"], name="unique_season_character_progress")
+        ]
+
+    def __str__(self):
+        return f"{self.season} - {self.character}"
+
+
+class CodexDiscovery(models.Model):
+    TYPE_CHOICES = [("enemy", "Enemy"), ("item", "Item")]
+    character = models.ForeignKey(Character, related_name="codex_discoveries", on_delete=models.CASCADE)
+    entry_type = models.CharField(max_length=16, choices=TYPE_CHOICES)
+    entry_key = models.CharField(max_length=64)
+    label = models.CharField(max_length=100)
+    discovered_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["entry_type", "label"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["character", "entry_type", "entry_key"],
+                name="unique_character_codex_entry",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.character}: {self.label}"
+
+
+class CraftingRecipe(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.CharField(max_length=240, blank=True)
+    output_item = models.ForeignKey(Item, related_name="crafting_recipes", on_delete=models.CASCADE)
+    output_quantity = models.PositiveIntegerField(default=1)
+    supply_cost = models.PositiveIntegerField(default=0)
+    gold_cost = models.PositiveIntegerField(default=0)
+    xp_reward = models.PositiveIntegerField(default=1)
+    enabled = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
