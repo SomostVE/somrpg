@@ -14,8 +14,10 @@
     </div>
     <form method="post" class="stacked-form">
       {% csrf_token %}
-      {{ form.name.label_tag }}{{ form.name }}{{ form.name.errors }}
-      {{ form.archetype.label_tag }}{{ form.archetype }}{{ form.archetype.errors }}
+      <label for="{{ form.name.id_for_label }}"><span class="lang-en">Name</span><span class="lang-fr">Nom</span></label>
+      {{ form.name }}{{ form.name.errors }}
+      <label for="{{ form.archetype.id_for_label }}"><span class="lang-en">Class</span><span class="lang-fr">Classe</span></label>
+      {{ form.archetype }}{{ form.archetype.errors }}
       <button class="button primary" type="submit"><span class="lang-en">Start on Floor 1</span><span class="lang-fr">Commencer à l'étage 1</span></button>
     </form>
   </div>
