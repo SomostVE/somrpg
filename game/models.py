@@ -249,7 +249,7 @@ class TowerFloor(models.Model):
         return hasattr(self, "boss_gate")
 
     def __str__(self):
-        return f"Floor {self.floor_number} — {self.name}"
+        return f"Sector {self.floor_number} — {self.name}"
 
 
 class FloorBoss(models.Model):
@@ -258,7 +258,7 @@ class FloorBoss(models.Model):
     title = models.CharField(max_length=100, blank=True)
 
     def __str__(self):
-        return f"Floor {self.floor.floor_number}: {self.enemy.name}"
+        return f"Sector {self.floor.floor_number}: {self.enemy.name}"
 
 
 class FloorShopOffer(models.Model):
@@ -274,7 +274,7 @@ class FloorShopOffer(models.Model):
         ]
 
     def __str__(self):
-        return f"F{self.unlock_floor} — {self.item.name} ({self.price}G)"
+        return f"S{self.unlock_floor} — {self.item.name} ({self.price}G)"
 
 
 class DiscordProfile(models.Model):
