@@ -15,10 +15,17 @@
     <header class="system-bar retro-window">
       <div>
         <a class="brand" href="{% url 'home' %}">SomRPG</a>
-        <span class="system-subtitle">DUNGEON ARCHIVE / PERSONAL TERMINAL</span>
+        <span class="system-subtitle">DUNGEON ARCHIVE / COMMUNITY TERMINAL</span>
       </div>
       <div class="system-meta">
         <span>VER {{ version }}</span>
+        {% if request.user.is_authenticated and discord_profile %}
+          <span>DISCORD: {{ discord_profile.display_name }}</span>
+        {% elif discord_configured %}
+          <a href="{% url 'discord_login' %}">CONNECT DISCORD</a>
+        {% else %}
+          <span>LOCAL MODE</span>
+        {% endif %}
         <span>{% if character %}{% if character.guard_active %}CITY GUARD ACTIVE{% else %}SAVE ACTIVE{% endif %}{% else %}NEW RECORD{% endif %}</span>
       </div>
     </header>
@@ -37,6 +44,8 @@
             <div><dt>DEF</dt><dd>{{ character.total_defense }}</dd></div>
             <div><dt>GOLD</dt><dd>{{ character.gold }}</dd></div>
             <div><dt>SUPPLY</dt><dd>{{ character.guard_resources }}</dd></div>
+            <div><dt>CRAFT XP</dt><dd>{{ character.crafting_xp }}</dd></div>
+            <div><dt>CODEX</dt><dd>{{ character.codex_completion|floatformat:1 }}%</dd></div>
             <div><dt>FLOOR</dt><dd>{{ character.floor }}</dd></div>
           </dl>
         </section>
@@ -47,8 +56,18 @@
           <a href="{% url 'character' %}"><span>&gt;</span> Character</a>
           <a href="{% url 'inventory' %}"><span>&gt;</span> Inventory</a>
           <a href="{% url 'city_guard' %}"><span>&gt;</span> City Guard{% if character.guard_active %} [ON DUTY]{% endif %}</a>
+          <a href="{% url 'workshop' %}"><span>&gt;</span> Workshop</a>
+          <a href="{% url 'codex' %}"><span>&gt;</span> Codex</a>
+          <a href="{% url 'community' %}"><span>&gt;</span> Community</a>
           <a href="{% url 'explore' %}"><span>&gt;</span> Explore</a>
         </nav>
+
+        {% if request.user.is_authenticated %}
+        <form method="post" action="{% url 'discord_logout' %}" class="account-form">
+          {% csrf_token %}
+          <button type="submit" class="text-command">&gt; Disconnect account</button>
+        </form>
+        {% endif %}
       </aside>
 
       <main class="main-column">
@@ -75,12 +94,21 @@
       </section>
       {% endif %}
       {% block standalone_content %}{% endblock %}
+      <section class="retro-window standalone-community-link">
+        <div class="window-title">NETWORK</div>
+        <div class="page-body">
+          <a class="button" href="{% url 'community' %}">&gt; Open Community Rankings</a>
+          {% if not request.user.is_authenticated and discord_configured %}
+          <a class="button primary" href="{% url 'discord_login' %}">&gt; Connect with Discord</a>
+          {% endif %}
+        </div>
+      </section>
     </main>
     {% endif %}
 
     <footer class="footer-line">
       <span>SOMRPG TERMINAL</span>
-      <span>LOCAL SAVE / SQLITE</span>
+      <span>DJANGO / SQLITE / DISCORD COMMUNITY</span>
     </footer>
   </div>
 </body>
