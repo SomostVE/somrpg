@@ -1,0 +1,20 @@
+{% load static %}
+{% if floor %}
+  {% if floor.biome == "greenbelt" or floor.biome == "meadow" or floor.biome == "orchard" %}
+    <img src="{% static 'images/biomes/plains.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "settlement" or floor.biome == "snow city" %}
+    <img src="{% static 'images/biomes/settlement.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "forest" %}
+    <img src="{% static 'images/biomes/forest.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "fortress" or floor.biome == "keep" or floor.biome == "cathedral" or floor.biome == "sky fortress" %}
+    <img src="{% static 'images/biomes/fortress.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "highland" or floor.biome == "plateau" or floor.biome == "night plains" %}
+    <img src="{% static 'images/biomes/highland.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "canals" or floor.biome == "marsh" or floor.biome == "storm coast" %}
+    <img src="{% static 'images/biomes/water.svg' %}" alt="" loading="lazy">
+  {% elif floor.biome == "canyon" or floor.biome == "volcanic" %}
+    <img src="{% static 'images/biomes/canyon.svg' %}" alt="" loading="lazy">
+  {% else %}
+    <img src="{% static 'images/biomes/archive.svg' %}" alt="" loading="lazy">
+  {% endif %}
+{% endif %}
