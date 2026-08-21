@@ -3,46 +3,31 @@
 {% block title %}Workshop - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title">WORKSHOP</div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">WORKSHOP</span><span class="lang-fr">ATELIER</span></div>
   <div class="page-body">
-    <p class="section-code">ARTISANAT // RANKING COEFFICIENT ×2</p>
-    <h1 class="page-title">Crafting Bench</h1>
-    <p class="story-text">
-      Crafting converts Guard supplies and gold into equipment. Every completed recipe grants Crafting XP,
-      which feeds the community Artisanat ranking.
-    </p>
-
+    <h1 class="page-title"><span class="lang-en">Crafting</span><span class="lang-fr">Artisanat</span></h1>
     <div class="data-grid">
-      <div class="data-row"><span>SUPPLIES</span><strong>{{ character.guard_resources }}</strong></div>
-      <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
-      <div class="data-row"><span>CRAFTING XP</span><strong>{{ character.crafting_xp }}</strong></div>
-      <div class="data-row"><span>RANK COEFFICIENT</span><strong>×2</strong></div>
+      <div class="data-row"><span><span class="lang-en">SUPPLIES</span><span class="lang-fr">RESSOURCES</span></span><strong>{{ character.guard_resources }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><strong>{{ character.gold }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">CRAFT XP</span><span class="lang-fr">XP ARTISANAT</span></span><strong>{{ character.crafting_xp }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">RANK</span><span class="lang-fr">COEF.</span></span><strong>×2</strong></div>
     </div>
   </div>
 </section>
 
 <section class="retro-window page-window">
-  <div class="window-title">AVAILABLE RECIPES</div>
+  <div class="window-title"><span class="lang-en">RECIPES</span><span class="lang-fr">RECETTES</span></div>
   <div class="page-body recipe-list">
     {% for recipe in recipes %}
     <article class="recipe-card">
       <div>
         <strong class="recipe-name">{{ recipe.name }}</strong>
-        <p>{{ recipe.description }}</p>
-        <small>
-          OUTPUT {{ recipe.output_quantity }}× {{ recipe.output_item.name }} ·
-          SUPPLY {{ recipe.supply_cost }} · GOLD {{ recipe.gold_cost }} · +{{ recipe.xp_reward }} CRAFT XP
-        </small>
+        <small>{{ recipe.output_quantity }}× {{ recipe.output_item.name }} · {{ recipe.supply_cost }} SUP · {{ recipe.gold_cost }} G · +{{ recipe.xp_reward }} XP</small>
       </div>
-      <form method="post" action="{% url 'craft_recipe' recipe.id %}">
-        {% csrf_token %}
-        <button class="button primary" type="submit">&gt; Craft</button>
-      </form>
+      <form method="post" action="{% url 'craft_recipe' recipe.id %}">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Craft</span><span class="lang-fr">Fabriquer</span></button></form>
     </article>
-    {% empty %}
-      <p class="empty-text">No recipe is available.</p>
-    {% endfor %}
+    {% empty %}<p class="empty-text"><span class="lang-en">No recipe.</span><span class="lang-fr">Aucune recette.</span></p>{% endfor %}
   </div>
 </section>
 {% endblock %}
