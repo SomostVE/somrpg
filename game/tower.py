@@ -98,5 +98,6 @@ def add_item(character, item, quantity=1, floor_number=None, affix_chance=True):
 
 
 def visible_tower_floors(character, future=2):
-    limit = max(character.floor + future, 1)
-    return TowerFloor.objects.filter(floor_number__lte=limit).select_related("boss_gate__enemy")
+    # The visual map shows the whole authored tower. Progression still controls
+    # which cards can be clicked; unreached floors remain locked.
+    return TowerFloor.objects.all().select_related("boss_gate__enemy")
