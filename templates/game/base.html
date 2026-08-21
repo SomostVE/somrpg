@@ -8,6 +8,8 @@
   <title>{% block title %}SomRPG{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/app.css' %}">
   <link rel="stylesheet" href="{% static 'css/community.css' %}">
+  <link rel="stylesheet" href="{% static 'css/layout-wide.css' %}">
+  <script defer src="{% static 'js/i18n.js' %}"></script>
 </head>
 <body>
   <div class="crt-overlay" aria-hidden="true"></div>
@@ -15,6 +17,10 @@
     <header class="system-bar retro-window">
       <div><a class="brand" href="{% url 'home' %}">SomRPG</a><span class="system-subtitle">DUNGEON ARCHIVE / COMMUNITY TERMINAL</span></div>
       <div class="system-meta">
+        <div class="language-switcher" aria-label="Language">
+          <button type="button" data-language="fr" aria-pressed="false">FR</button>
+          <button type="button" data-language="en" aria-pressed="false">EN</button>
+        </div>
         <span>VER {{ version }}</span>
         {% if request.user.is_authenticated and discord_profile %}<span>DISCORD: {{ discord_profile.display_name }}</span>
         {% elif discord_configured %}<a href="{% url 'discord_login' %}">CONNECT DISCORD</a>{% else %}<span>LOCAL MODE</span>{% endif %}

@@ -60,3 +60,16 @@ class CharacterOwnershipTests(TestCase):
         request = RequestFactory().get("/")
         request.user = type("Anonymous", (), {"is_authenticated": False})()
         self.assertEqual(get_character(request), local_character)
+
+
+class BilingualLayoutTests(TestCase):
+    def test_base_layout_exposes_language_switcher_and_responsive_assets(self):
+        Character.objects.create(name="Layout Hero")
+        response = self.client.get("/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'data-language="fr"')
+        self.assertContains(response, 'data-language="en"')
+        self.assertContains(response, "css/layout-wide.css")
+        self.assertContains(response, "js/i18n.js")
+        self.assertContains(response, "VER 0.5.0")

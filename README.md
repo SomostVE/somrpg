@@ -7,11 +7,21 @@ SomRPG is a self-hosted text-heavy web RPG inspired by PC-98 and early-2000s men
 - Django 5.2 LTS
 - SQLite
 - Server-rendered HTML/CSS
+- Lightweight JavaScript for the bilingual interface
 - Gunicorn + WhiteNoise
 - Docker
 - Optional Discord OAuth for community accounts
 
-## Current milestone — v0.4.0
+## Current milestone — v0.5.0
+
+### Interface
+
+- English and French interface with a persistent FR / EN selector.
+- The first visit follows the browser language when it is French; otherwise English is used.
+- Wide desktop layout up to 1720 px instead of the former narrow centered column.
+- The classic Town laboratory uses three columns on large monitors and two columns on medium desktops to reduce vertical scrolling.
+- Tablet and mobile layouts collapse back to one column, with compact two-column status and command panels where space allows.
+- The language system remains entirely self-hosted and requires no translation service or external API.
 
 ### Core RPG
 
@@ -38,7 +48,7 @@ Gold spent never reduces Commerce progress: the ranking tracks gross gold earned
 
 ## Classic systems laboratory
 
-Version 0.4.0 adds a separate Django app named `classic`. It deliberately groups broad browser-RPG mechanics in one removable module so each system can be tested, renamed, merged into the core game or deleted later without dismantling the dungeon/community architecture.
+The separate Django app named `classic` deliberately groups broad browser-RPG mechanics in one removable module so each system can be tested, renamed, merged into the core game or deleted later without dismantling the dungeon/community architecture.
 
 The Town currently prototypes:
 

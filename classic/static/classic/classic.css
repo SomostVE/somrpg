@@ -14,5 +14,10 @@
 .classic-event { grid-template-columns:1fr; margin:8px 0; }
 .classic-subtitle { margin:16px 0 8px; font-size:1rem; }
 .button[disabled] { opacity:.45; cursor:not-allowed; }
+
+@media(min-width:1451px){
+  .classic-index{grid-template-columns:repeat(6,minmax(0,1fr));}
+  #top .section-code{display:none;}
+}
 @media(max-width:760px){ .classic-index{grid-template-columns:1fr 1fr}.classic-list article{grid-template-columns:1fr}.classic-actions form,.classic-actions .button{width:100%} }
 @media(max-width:480px){ .classic-index{grid-template-columns:1fr} }
