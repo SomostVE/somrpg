@@ -1,0 +1,164 @@
+/* v0.8.1: keep the dense three-column shell, but restore comfortable reading sizes. */
+html { font-size: 18px; }
+body { line-height: 1.45; }
+
+/* Header */
+.compact-system-bar { min-height: 54px; padding: 6px 10px; }
+.compact-system-bar .brand { font-size: 1.45rem; }
+.compact-system-bar .system-subtitle { font-size: .72rem; }
+.system-center,
+.system-meta { font-size: .72rem; line-height: 1.35; }
+.language-switcher button { min-width: 34px; min-height: 27px; font-size: .72rem; }
+
+/* Main desktop columns: still compact, but wide enough for readable text. */
+.game-layout,
+.game-layout.has-chat {
+  grid-template-columns: 230px minmax(0, 1fr) 330px;
+  gap: 7px;
+  min-height: calc(100vh - 70px);
+}
+.compact-sidebar,
+.main-column,
+.chat-rail { max-height: calc(100vh - 72px); }
+.chat-rail { height: calc(100vh - 72px); }
+
+/* Player card */
+.player-card { padding: 7px; }
+.player-head { grid-template-columns: 38px minmax(0, 1fr); gap: 8px; }
+.player-mark { width: 38px; height: 38px; font-size: 1.05rem; }
+.player-name-block strong { font-size: .92rem; }
+.player-name-block small { font-size: .72rem; }
+.floor-chip { padding: 5px 6px; gap: 6px; }
+.floor-chip > span { font-size: .82rem; }
+.floor-chip strong { font-size: .72rem; }
+.floor-chip > small { font-size: .66rem; }
+.quick-stats { gap: 3px; }
+.quick-stats span { padding: 4px 5px; font-size: .72rem; }
+.xp-caption { font-size: .68rem; }
+
+/* Left menu */
+.compact-command { padding: 0 5px 5px; }
+.menu-section-label { margin: 4px 2px 2px; padding: 2px 4px; font-size: .63rem; }
+.evolving-command .menu-entry {
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  min-height: 31px;
+  padding: 4px 5px;
+  font-size: .82rem;
+  line-height: 1.25;
+}
+.menu-glyph { width: 18px; height: 18px; font-size: .65rem; }
+.account-form .text-command { min-height: 30px; padding: 4px 6px; font-size: .75rem; }
+
+/* Generic content */
+.status-window,
+.command-window,
+.message-window,
+.page-window,
+.help-window,
+.log-window,
+.reward-window { padding: 0 8px 8px; }
+.window-title { margin-bottom: 7px; padding: 5px 8px; font-size: .78rem; }
+.page-title { margin-bottom: 7px; font-size: clamp(1.45rem, 2.2vw, 2rem); }
+.section-code { margin-bottom: 4px; font-size: .72rem; }
+.story-text,
+.help-text,
+.empty-text { margin-bottom: 7px; font-size: .9rem; line-height: 1.45; }
+.data-grid { gap: 4px; margin: 7px 0; }
+.data-row { padding: 6px 8px; font-size: .86rem; }
+.action-row { gap: 6px; margin-top: 8px; }
+.button { min-height: 36px; padding: 6px 11px; font-size: .84rem; line-height: 1.2; }
+.command-note { margin-top: 5px; font-size: .75rem; }
+.item-list { gap: 6px; }
+.item-card { gap: 8px; padding: 8px; }
+.item-name { font-size: .92rem; }
+.item-card p { margin: 3px 0; font-size: .82rem; }
+.item-card small { font-size: .74rem; }
+.combat-log { max-height: 340px; padding: 8px; font-size: .84rem; line-height: 1.45; }
+.reward-list div { padding: 6px 8px; font-size: .84rem; }
+.result-banner { padding: 7px 9px; font-size: .86rem; }
+.system-message { font-size: .86rem; line-height: 1.4; }
+
+/* Tower/floor navigation */
+.floor-nav-bar { margin: 6px 0; }
+.floor-nav-bar .button { min-height: 34px; padding: 5px 9px; }
+.floor-nav-center { font-size: .72rem; }
+.floor-nav-center strong { font-size: .86rem; }
+.compact-floor-list .floor-card { min-height: 52px; padding: 7px 8px; }
+.floor-card h3 { font-size: .9rem !important; }
+.floor-card p { font-size: .74rem !important; line-height: 1.35; }
+.floor-actions .button { min-height: 31px; padding: 4px 8px; font-size: .74rem; }
+
+/* Shop */
+.shop-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.shop-card { padding: 9px; }
+.shop-card .stock-tag { font-size: .65rem; }
+.shop-card h3 { margin: 4px 0; font-size: .9rem; line-height: 1.25; }
+.shop-card p { min-height: 0; font-size: .78rem; line-height: 1.35; }
+.shop-meta { gap: 5px; margin-bottom: 6px; font-size: .74rem; line-height: 1.3; }
+.gear-slot { font-size: .65rem; }
+.shop-balance { font-size: 1rem; }
+
+/* Live chat */
+.live-chat-window { padding: 0 7px 7px; }
+.chat-presence { padding: 3px 2px 6px; font-size: .72rem; }
+.live-chat-messages { padding: 7px; }
+.chat-line { margin-bottom: 7px; font-size: .84rem; line-height: 1.4; }
+.live-chat-line time { font-size: .66rem; }
+.live-chat-form { gap: 5px; margin-top: 6px; }
+.live-chat-form textarea { min-height: 64px; padding: 7px; font-size: .84rem; line-height: 1.35; }
+.live-chat-form button { min-height: 40px; }
+.chat-locked { gap: 10px; padding: 16px; font: .82rem/1.45 "Courier New", monospace; }
+.chat-locked strong { font-size: .9rem; }
+
+/* Content index */
+.index-search { min-height: 38px; padding: 6px 9px; font: .84rem "Courier New", monospace; }
+.index-summary span { padding: 6px 7px; font: .75rem "Courier New", monospace; }
+.index-section summary { padding: 6px 8px; font: 700 .8rem "Courier New", monospace; }
+.index-table { font: .78rem/1.4 "Courier New", monospace; }
+.index-table th,
+.index-table td { padding: 5px 7px; }
+
+/* Classic/Town prototype pages */
+.classic-index a { font-size: .82rem; line-height: 1.3; }
+.classic-list strong,
+.classic-enchant strong,
+.classic-event strong { font-size: .9rem; }
+.classic-list p,
+.classic-event p { font-size: .82rem; line-height: 1.4; }
+.classic-list small { font-size: .74rem; }
+.classic-subtitle { font-size: 1.05rem; }
+
+@media (max-width: 1500px) {
+  html { font-size: 17px; }
+  .game-layout,
+  .game-layout.has-chat { grid-template-columns: 215px minmax(0, 1fr) 285px; }
+  .shop-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 1050px) {
+  html { font-size: 16px; }
+  .game-layout,
+  .game-layout.has-chat { grid-template-columns: 205px minmax(0, 1fr) 255px; }
+}
+
+@media (max-width: 880px) {
+  html { font-size: 17px; }
+  .game-layout,
+  .game-layout.has-chat { grid-template-columns: 1fr; }
+  .compact-sidebar { grid-template-columns: 230px minmax(0, 1fr); }
+  .chat-rail { height: 340px; }
+}
+
+@media (max-width: 600px) {
+  html { font-size: 16px; }
+  .compact-sidebar { grid-template-columns: 1fr; }
+  .evolving-command .menu-entry { min-height: 38px; font-size: .9rem; }
+  .shop-grid { grid-template-columns: 1fr; }
+  .button { min-height: 40px; font-size: .9rem; }
+  .story-text,
+  .help-text,
+  .empty-text { font-size: .95rem; }
+  .chat-rail { height: 320px; }
+  .chat-line,
+  .live-chat-form textarea { font-size: .9rem; }
+}
