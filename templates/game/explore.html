@@ -1,10 +1,10 @@
 {% extends "game/base.html" %}
 
-{% block title %}Floor {{ encounter_floor.floor_number }} - SomRPG{% endblock %}
+{% block title %}Sector {{ encounter_floor.floor_number }} - SomRPG{% endblock %}
 
 {% block content %}
 <section class="retro-window page-window compact-intro">
-  <div class="window-title"><span class="lang-en">ENCOUNTER</span><span class="lang-fr">RENCONTRE</span> · F{{ encounter_floor.floor_number|stringformat:"02d" }}</div>
+  <div class="window-title"><span class="lang-en">ENCOUNTER</span><span class="lang-fr">RENCONTRE</span> · S{{ encounter_floor.floor_number|stringformat:"02d" }}</div>
   <div class="page-body">
     <div class="enemy-header">
       <div>
@@ -24,7 +24,7 @@
     </div>
 
     {% if not result %}
-    <div class="action-row"><form method="post">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></button></form><a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a></div>
+    <div class="action-row"><form method="post">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></button></form><a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></a></div>
     {% endif %}
   </div>
 </section>
@@ -45,12 +45,12 @@
       <div><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><span>+{{ result.gold }}</span></div>
       <div><span><span class="lang-en">LOOT</span><span class="lang-fr">BUTIN</span></span><span>{% if result.loot_name %}{{ result.loot_name }}{% else %}-{% endif %}</span></div>
       <div><span><span class="lang-en">INHABITANTS</span><span class="lang-fr">HABITANTS</span></span><span>+{{ result.inhabitants_joined }}</span></div>
-      {% if result.unlocked_floor %}<div><span><span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉ</span></span><span>F{{ result.unlocked_floor|stringformat:"02d" }}</span></div>{% endif %}
+      {% if result.unlocked_floor %}<div><span><span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉ</span></span><span>S{{ result.unlocked_floor|stringformat:"02d" }}</span></div>{% endif %}
     </div>
     <div class="action-row">
-      {% if result.unlocked_floor %}<a class="button primary" href="{% url 'home' %}"><span class="lang-en">New floor</span><span class="lang-fr">Nouvel étage</span></a>{% else %}<a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight again</span><span class="lang-fr">Recombattre</span></a>{% endif %}
+      {% if result.unlocked_floor %}<a class="button primary" href="{% url 'home' %}"><span class="lang-en">New sector</span><span class="lang-fr">Nouveau secteur</span></a>{% else %}<a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight again</span><span class="lang-fr">Recombattre</span></a>{% endif %}
       <a class="button" href="{% url 'colony' %}"><span class="lang-en">Colony</span><span class="lang-fr">Colonie</span></a>
-      <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a>
+      <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></a>
     </div>
     {% else %}
     <div class="action-row"><a class="button" href="{% url 'home' %}"><span class="lang-en">Back</span><span class="lang-fr">Retour</span></a></div>
