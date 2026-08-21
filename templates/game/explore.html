@@ -44,10 +44,12 @@
       <div><span>XP</span><span>+{{ result.xp }}</span></div>
       <div><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><span>+{{ result.gold }}</span></div>
       <div><span><span class="lang-en">LOOT</span><span class="lang-fr">BUTIN</span></span><span>{% if result.loot_name %}{{ result.loot_name }}{% else %}-{% endif %}</span></div>
+      <div><span><span class="lang-en">INHABITANTS</span><span class="lang-fr">HABITANTS</span></span><span>+{{ result.inhabitants_joined }}</span></div>
       {% if result.unlocked_floor %}<div><span><span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉ</span></span><span>F{{ result.unlocked_floor|stringformat:"02d" }}</span></div>{% endif %}
     </div>
     <div class="action-row">
       {% if result.unlocked_floor %}<a class="button primary" href="{% url 'home' %}"><span class="lang-en">New floor</span><span class="lang-fr">Nouvel étage</span></a>{% else %}<a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight again</span><span class="lang-fr">Recombattre</span></a>{% endif %}
+      <a class="button" href="{% url 'colony' %}"><span class="lang-en">Colony</span><span class="lang-fr">Colonie</span></a>
       <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a>
     </div>
     {% else %}
