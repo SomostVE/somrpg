@@ -1,0 +1,74 @@
+{% extends "game/base.html" %}
+
+{% block title %}Profile - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window profile-shell">
+  <div class="window-title"><span class="lang-en">PLAYER PROFILE</span><span class="lang-fr">PROFIL DU JOUEUR</span></div>
+  <div class="profile-tabs">
+    <a href="#character"><span class="lang-en">Character</span><span class="lang-fr">Personnage</span></a>
+    <a href="#inventory"><span class="lang-en">Inventory</span><span class="lang-fr">Inventaire</span></a>
+    <a href="#codex">Codex</a>
+  </div>
+
+  <div id="character" class="profile-section profile-character">
+    <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
+    <div class="profile-identity">
+      <p class="section-code">F{{ active_floor|stringformat:"02d" }} / MAX F{{ character.floor|stringformat:"02d" }}</p>
+      <h1>{{ character.name }}</h1>
+      <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
+    </div>
+    <div class="profile-stat-grid">
+      <span><b><span class="lang-en">LEVEL</span><span class="lang-fr">NIVEAU</span></b>{{ character.level }}</span>
+      <span><b>XP</b>{{ character.xp }}/{{ character.xp_to_next_level }}</span>
+      <span><b><span class="lang-en">HP</span><span class="lang-fr">PV</span></b>{{ character.combat_max_hp }}</span>
+      <span><b><span class="lang-en">ATK</span><span class="lang-fr">ATQ</span></b>{{ character.total_attack }}</span>
+      <span><b>DEF</b>{{ character.total_defense }}</span>
+      <span><b><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></b>{{ character.gold }}</span>
+      <span><b><span class="lang-en">CRAFT XP</span><span class="lang-fr">XP ART.</span></b>{{ character.crafting_xp }}</span>
+      <span><b><span class="lang-en">COLONY</span><span class="lang-fr">COLONIE</span></b>{{ colony.inhabitants }}</span>
+    </div>
+  </div>
+</section>
+
+<section id="inventory" class="retro-window profile-panel">
+  <div class="window-title"><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></div>
+  <div class="profile-inventory-grid">
+    {% for row in inventory_rows %}
+    {% with entry=row.entry %}
+    <article class="profile-item rarity-{{ entry.item.rarity }}">
+      <div class="profile-item-head">
+        <span class="gear-slot"><span class="lang-en">{{ entry.item.get_slot_display }}</span><span class="lang-fr">{% if entry.item.slot == 'weapon' %}Arme{% elif entry.item.slot == 'head' %}Tête{% elif entry.item.slot == 'body' %}Corps{% elif entry.item.slot == 'hands' %}Mains{% elif entry.item.slot == 'feet' %}Pieds{% elif entry.item.slot == 'accessory' %}Accessoire{% elif entry.item.slot == 'material' %}Matériau{% else %}Divers{% endif %}</span></span>
+        {% if entry.equipped %}<em><span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span></em>{% endif %}
+      </div>
+      <strong>{{ entry.display_name }}</strong>
+      <small>×{{ entry.quantity }} · F{{ entry.item.unlock_floor }}{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · ATQ +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · DEF +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small>
+      <div class="profile-item-actions">
+        {% if entry.item.slot != "misc" and entry.item.slot != "material" %}
+        <form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>
+        {% endif %}
+        <form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell</span><span class="lang-fr">Vendre</span> · {{ row.sell_value }}G</button></form>
+      </div>
+    </article>
+    {% empty %}
+    <p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>
+    {% endfor %}
+  </div>
+</section>
+
+<section id="codex" class="retro-window profile-panel">
+  <div class="window-title">CODEX · {{ completion|floatformat:1 }}%</div>
+  <div class="profile-codex-summary">
+    <span><b><span class="lang-en">FLOORS</span><span class="lang-fr">ÉTAGES</span></b>{{ floor_entries|length }}/{{ floor_total }}</span>
+    <span><b><span class="lang-en">ENEMIES</span><span class="lang-fr">ENNEMIS</span></b>{{ enemy_entries|length }}/{{ enemy_total }}</span>
+    <span><b><span class="lang-en">ITEMS</span><span class="lang-fr">OBJETS</span></b>{{ item_entries|length }}/{{ item_total }}</span>
+    <span><b><span class="lang-en">FOUND</span><span class="lang-fr">TROUVÉ</span></b>{{ discovered_entries }}</span>
+  </div>
+  <div class="codex-meter"><div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div></div>
+  <div class="profile-codex-columns">
+    <div><h3><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></h3>{% for entry in floor_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
+    <div><h3><span class="lang-en">Bestiary</span><span class="lang-fr">Bestiaire</span></h3>{% for entry in enemy_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
+    <div><h3><span class="lang-en">Items</span><span class="lang-fr">Objets</span></h3>{% for entry in item_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
+  </div>
+</section>
+{% endblock %}
