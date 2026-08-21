@@ -3,41 +3,77 @@
 {% block title %}Tower - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window compact-intro">
-  <div class="window-title"><span class="lang-en">TOWER</span><span class="lang-fr">TOUR</span></div>
-  <div class="page-body">
-    <h1 class="page-title"><span class="lang-en">Floor map</span><span class="lang-fr">Carte des étages</span></h1>
-    <p class="story-text"><span class="lang-en">Travel freely between unlocked floors.</span><span class="lang-fr">Déplacez-vous librement entre les étages débloqués.</span></p>
+<section class="retro-window page-window">
+  <div class="window-title"><span class="lang-en">TOWER MAP</span><span class="lang-fr">CARTE DE LA TOUR</span></div>
+  <div class="page-body tower-map-focus">
+    <div class="floor-art">
+      {% include "game/_floor_art.html" with floor=tower_floor %}
+    </div>
+    <div class="tower-map-focus-copy">
+      <p class="section-code">F{{ active_floor|stringformat:"02d" }} · {{ tower_floor.biome|upper }}</p>
+      <h1 class="page-title">{{ tower_floor.name }}</h1>
+      <p class="story-text">{{ tower_floor.description }}</p>
+      <div class="tower-map-quick-actions">
+        <a class="button primary" href="{% url 'home' %}"><span class="lang-en">Camp</span><span class="lang-fr">Camp</span></a>
+        <a class="button" href="{% url 'explore' %}"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></a>
+        <a class="button" href="{% url 'floor_shop' %}"><span class="lang-en">Shop</span><span class="lang-fr">Boutique</span></a>
+      </div>
+    </div>
   </div>
 </section>
 
 <section class="retro-window page-window">
   <div class="window-title"><span class="lang-en">FLOORS</span><span class="lang-fr">ÉTAGES</span> · F{{ active_floor|stringformat:"02d" }} / F{{ character.floor|stringformat:"02d" }}</div>
-  <div class="page-body tower-list compact-floor-list">
-    {% for floor in floors %}
-      <article class="floor-card {% if floor.floor_number == active_floor %}current{% elif floor.floor_number <= character.floor %}cleared{% else %}locked{% endif %}{% if floor.has_boss %} boss-floor{% endif %}">
-        <div class="floor-index">F{{ floor.floor_number|stringformat:"02d" }}</div>
-        <div>
-          <h3>{{ floor.name }}</h3>
-          <p>{{ floor.biome|upper }}{% if floor.has_boss %} · BOSS{% endif %}</p>
-        </div>
-        <div class="floor-actions">
+  <div class="page-body">
+    <div class="floor-map-legend">
+      <span class="legend-current"><span class="lang-en">Current</span><span class="lang-fr">Actuel</span></span>
+      <span class="legend-open"><span class="lang-en">Unlocked</span><span class="lang-fr">Débloqué</span></span>
+      <span class="legend-locked"><span class="lang-en">Locked</span><span class="lang-fr">Verrouillé</span></span>
+      <span class="legend-boss">Boss</span>
+    </div>
+
+    <div class="visual-floor-grid">
+      {% for floor in floors %}
+        <article class="visual-floor-card {% if floor.floor_number == active_floor %}current{% elif floor.floor_number <= character.floor %}cleared{% else %}locked{% endif %}{% if floor.has_boss %} boss-floor{% endif %}">
+          {% if floor.has_boss %}<span class="floor-boss-badge">BOSS</span>{% endif %}
+
           {% if floor.floor_number == active_floor %}
-            <strong class="floor-state-current"><span class="lang-en">HERE</span><span class="lang-fr">ICI</span></strong>
+            <a class="floor-map-link" href="{% url 'home' %}">
+              <div class="floor-art">{% include "game/_floor_art.html" with floor=floor %}</div>
+              <div class="floor-card-copy">
+                <div class="floor-card-topline"><span class="floor-card-code">F{{ floor.floor_number|stringformat:"02d" }}</span><span class="floor-card-state"><span class="lang-en">HERE</span><span class="lang-fr">ICI</span></span></div>
+                <h3>{{ floor.name }}</h3>
+                <p>{{ floor.biome }}</p>
+              </div>
+            </a>
           {% elif floor.floor_number <= character.floor %}
-            {% if floor.floor_number == character.floor %}<span class="floor-state-frontier"><span class="lang-en">FRONTIER</span><span class="lang-fr">FRONTIÈRE</span></span>{% endif %}
-            <form method="post" action="{% url 'travel_floor' floor.floor_number %}">
+            <form class="floor-map-form" method="post" action="{% url 'travel_floor' floor.floor_number %}">
               {% csrf_token %}
-              <button class="button" type="submit"><span class="lang-en">Travel</span><span class="lang-fr">Aller</span></button>
+              <input type="hidden" name="return_to" value="home">
+              <button class="floor-map-button" type="submit">
+                <div class="floor-art">{% include "game/_floor_art.html" with floor=floor %}</div>
+                <div class="floor-card-copy">
+                  <div class="floor-card-topline"><span class="floor-card-code">F{{ floor.floor_number|stringformat:"02d" }}</span><span class="floor-card-state">{% if floor.floor_number == character.floor %}<span class="lang-en">FRONTIER</span><span class="lang-fr">FRONTIÈRE</span>{% else %}<span class="lang-en">TRAVEL</span><span class="lang-fr">ALLER</span>{% endif %}</span></div>
+                  <h3>{{ floor.name }}</h3>
+                  <p>{{ floor.biome }}</p>
+                </div>
+              </button>
             </form>
           {% else %}
-            <span class="floor-state-locked"><span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span></span>
+            <div class="floor-map-locked">
+              <div class="floor-art">{% include "game/_floor_art.html" with floor=floor %}</div>
+              <div class="floor-card-copy">
+                <div class="floor-card-topline"><span class="floor-card-code">F{{ floor.floor_number|stringformat:"02d" }}</span><span class="floor-card-state"><span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span></span></div>
+                <h3>{{ floor.name }}</h3>
+                <p>{{ floor.biome }}</p>
+              </div>
+            </div>
           {% endif %}
-        </div>
-      </article>
-    {% empty %}
-      <p class="empty-text"><span class="lang-en">No floor data.</span><span class="lang-fr">Aucun étage configuré.</span></p>
-    {% endfor %}
+        </article>
+      {% empty %}
+        <p class="empty-text"><span class="lang-en">No floor data.</span><span class="lang-fr">Aucun étage configuré.</span></p>
+      {% endfor %}
+    </div>
   </div>
 </section>
 {% endblock %}

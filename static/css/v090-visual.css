@@ -1,0 +1,169 @@
+/* v0.9.0 — visual landmarks without abandoning the text-first retro shell. */
+.floor-art {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line-dim);
+  background: #050b13;
+}
+.floor-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.floor-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 45%, rgba(3,8,15,.62) 100%);
+}
+.floor-art-hero {
+  height: clamp(145px, 18vw, 230px);
+  margin-bottom: 10px;
+}
+
+.tower-map-focus {
+  display: grid;
+  grid-template-columns: minmax(260px, .9fr) minmax(320px, 1.1fr);
+  gap: 10px;
+}
+.tower-map-focus .floor-art { min-height: 190px; }
+.tower-map-focus-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  padding: 10px 12px;
+}
+.tower-map-focus-copy .page-title { margin: 2px 0 5px; }
+.tower-map-focus-copy .story-text { max-width: 72ch; }
+.tower-map-quick-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+
+.visual-floor-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+.visual-floor-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--line-dim);
+  background: #091321;
+}
+.visual-floor-card.current { border-color: var(--gold); box-shadow: inset 0 0 0 1px rgba(255,210,119,.22); }
+.visual-floor-card.boss-floor { border-bottom-color: #a46d42; }
+.visual-floor-card.locked { opacity: .46; filter: saturate(.45); }
+.visual-floor-card .floor-art { height: 105px; border: 0; border-bottom: 1px solid var(--line-dim); }
+.visual-floor-card .floor-art::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  box-shadow: inset 0 0 30px rgba(0,0,0,.35);
+  pointer-events: none;
+}
+.floor-map-link,
+.floor-map-button,
+.floor-map-locked {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.floor-map-button:hover,
+.floor-map-link:hover { background: rgba(105,165,215,.055); text-decoration: none; }
+.floor-map-locked { cursor: default; }
+.floor-map-form { margin: 0; height: 100%; }
+.floor-card-copy { padding: 7px 8px 8px; }
+.floor-card-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 3px;
+  color: var(--muted);
+  font: 700 .72rem/1.2 "Courier New", monospace;
+}
+.floor-card-code { color: var(--gold); font-size: .92rem; }
+.floor-card-state { font-size: .66rem; letter-spacing: .06em; }
+.floor-card-copy h3 {
+  margin: 0 0 3px;
+  overflow: hidden;
+  color: #f1f7ff;
+  font: 700 .9rem/1.2 "Courier New", monospace;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.floor-card-copy p {
+  margin: 0;
+  overflow: hidden;
+  color: var(--muted);
+  font: .7rem/1.25 "Courier New", monospace;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.floor-boss-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 3;
+  padding: 3px 6px;
+  border: 1px solid #bb7747;
+  background: rgba(46,18,12,.9);
+  color: #ffc17f;
+  font: 700 .62rem "Courier New", monospace;
+}
+.floor-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 7px;
+  color: var(--muted);
+  font: .68rem "Courier New", monospace;
+}
+.floor-map-legend span::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border: 1px solid var(--line);
+  vertical-align: 0;
+}
+.floor-map-legend .legend-current::before { border-color: var(--gold); background: rgba(255,210,119,.35); }
+.floor-map-legend .legend-open::before { background: rgba(133,215,255,.24); }
+.floor-map-legend .legend-locked::before { background: rgba(90,105,124,.18); }
+.floor-map-legend .legend-boss::before { border-color: #bb7747; background: rgba(187,119,71,.28); }
+
+/* Home gains one visual anchor while keeping its current information density. */
+.floor-identity .floor-art-hero { margin: 0 0 8px; }
+.floor-identity .floor-number-big { position: relative; z-index: 1; }
+
+@media (max-width: 1500px) {
+  .visual-floor-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 1120px) {
+  .visual-floor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tower-map-focus { grid-template-columns: 1fr; }
+  .tower-map-focus .floor-art { min-height: 160px; max-height: 220px; }
+}
+@media (max-width: 880px) {
+  .visual-floor-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .visual-floor-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .visual-floor-card .floor-art { height: 92px; }
+}
+@media (max-width: 430px) {
+  .visual-floor-grid { grid-template-columns: 1fr; }
+  .visual-floor-card .floor-art { height: 120px; }
+  .tower-map-quick-actions .button { flex: 1 1 auto; }
+}

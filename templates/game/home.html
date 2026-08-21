@@ -7,6 +7,7 @@
   <article class="retro-window page-window compact-intro">
     <div class="window-title"><span class="lang-en">FLOOR</span><span class="lang-fr">ÉTAGE</span> F{{ active_floor|stringformat:"02d" }}</div>
     <div class="page-body floor-identity">
+      {% if tower_floor %}<div class="floor-art floor-art-hero">{% include "game/_floor_art.html" with floor=tower_floor %}</div>{% endif %}
       <div class="floor-number-big">F{{ active_floor|stringformat:"02d" }}</div>
       {% if tower_floor %}
         <div class="floor-kicker">{{ tower_floor.biome|upper }}</div>
@@ -41,7 +42,7 @@
       <div class="action-row">
         <a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></a>
         <a class="button" href="{% url 'floor_shop' %}"><span class="lang-en">Shop</span><span class="lang-fr">Boutique</span></a>
-        <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a>
+        <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Map</span><span class="lang-fr">Carte</span></a>
       </div>
     </div>
   </aside>
