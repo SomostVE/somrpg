@@ -1,48 +1,30 @@
 {% extends "game/base.html" %}
 
-{% block title %}Floor {{ character.floor }} - SomRPG{% endblock %}
+{% block title %}Floor {{ active_floor }} - SomRPG{% endblock %}
 
 {% block content %}
-<section class="retro-window page-window">
-  <div class="window-title">
-    {% if is_boss %}<span class="lang-en">BOSS GATE</span><span class="lang-fr">PORTE DU BOSS</span>{% else %}<span class="lang-en">FLOOR ENCOUNTER</span><span class="lang-fr">RENCONTRE D'ÉTAGE</span>{% endif %}
-    / F{{ encounter_floor.floor_number|stringformat:"02d" }}{% if encounter_floor %} / {{ encounter_floor.name|upper }}{% endif %}
-  </div>
+<section class="retro-window page-window compact-intro">
+  <div class="window-title"><span class="lang-en">ENCOUNTER</span><span class="lang-fr">RENCONTRE</span> · F{{ active_floor|stringformat:"02d" }}</div>
   <div class="page-body">
     <div class="enemy-header">
       <div>
-        <p class="section-code">{% if is_boss %}<span class="lang-en">PROGRESSION GATE // BOSS</span><span class="lang-fr">PORTE DE PROGRESSION // BOSS</span>{% else %}<span class="lang-en">HOSTILE SIGNAL DETECTED</span><span class="lang-fr">PRÉSENCE HOSTILE DÉTECTÉE</span>{% endif %}</p>
+        <p class="section-code">{% if is_boss %}BOSS GATE{% else %}{{ encounter_floor.biome|upper }}{% endif %}</p>
         <h1 class="page-title">{{ enemy.name }}</h1>
       </div>
-      <span class="enemy-rank">{% if is_boss %}BOSS{% else %}<span class="lang-en">ACTIVE THREAT</span><span class="lang-fr">MENACE ACTIVE</span>{% endif %}</span>
+      {% if is_boss %}<span class="enemy-rank">BOSS</span>{% endif %}
     </div>
 
-    <p class="story-text">
-      {% if is_boss %}
-        <span class="lang-en">This enemy controls the staircase to the next sector of the tower. Defeating it unlocks the next floor and its shop progression.</span>
-        <span class="lang-fr">Cet ennemi contrôle l'escalier vers le secteur suivant de la tour. Le vaincre débloque l'étage suivant et sa progression de boutique.</span>
-      {% else %}
-        <span class="lang-en">A hostile presence blocks the route upward. Battle resolution is automatic and every exchange is recorded.</span>
-        <span class="lang-fr">Une présence hostile bloque la route vers l'étage supérieur. Le combat est automatique et chaque échange est enregistré.</span>
-      {% endif %}
-    </p>
-
     <div class="data-grid">
-      <div class="data-row"><span>ENEMY HP</span><strong>{{ enemy.max_hp }}</strong></div>
-      <div class="data-row"><span>ENEMY ATK</span><strong>{{ enemy.attack }}</strong></div>
-      <div class="data-row"><span>ENEMY DEF</span><strong>{{ enemy.defense }}</strong></div>
-      <div class="data-row"><span>XP REWARD</span><strong>{{ enemy.xp_reward }}</strong></div>
-      <div class="data-row"><span>GOLD</span><strong>{{ enemy.gold_min }}-{{ enemy.gold_max }}</strong></div>
-      <div class="data-row"><span>DROP</span><strong>{% if enemy.loot %}{{ enemy.loot.name }}{% else %}NONE{% endif %}</strong></div>
+      <div class="data-row"><span>HP</span><strong>{{ enemy.max_hp }}</strong></div>
+      <div class="data-row"><span>ATK</span><strong>{{ enemy.attack }}</strong></div>
+      <div class="data-row"><span>DEF</span><strong>{{ enemy.defense }}</strong></div>
+      <div class="data-row"><span>XP</span><strong>{{ enemy.xp_reward }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><strong>{{ enemy.gold_min }}-{{ enemy.gold_max }}</strong></div>
+      <div class="data-row"><span><span class="lang-en">DROP</span><span class="lang-fr">BUTIN</span></span><strong>{% if enemy.loot %}{{ enemy.loot.name }}{% else %}-{% endif %}</strong></div>
     </div>
 
     {% if not result %}
-    <div class="action-row">
-      <form method="post">
-        {% csrf_token %}
-        <button class="button primary" type="submit"><span class="lang-en">&gt; Begin auto battle</span><span class="lang-fr">&gt; Commencer le combat automatique</span></button>
-      </form>
-    </div>
+    <div class="action-row"><form method="post">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></button></form><a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a></div>
     {% endif %}
   </div>
 </section>
@@ -50,31 +32,26 @@
 {% if result %}
 <section class="retro-window log-window">
   <div class="window-title"><span class="lang-en">COMBAT LOG</span><span class="lang-fr">JOURNAL DE COMBAT</span></div>
-  <div class="combat-log">
-    {% for line in result.rounds %}<p>{{ line }}</p>{% endfor %}
-  </div>
+  <div class="combat-log">{% for line in result.rounds %}<p>{{ line }}</p>{% endfor %}</div>
 </section>
 
 <section class="retro-window reward-window">
-  <div class="window-title"><span class="lang-en">BATTLE RESULT</span><span class="lang-fr">RÉSULTAT DU COMBAT</span></div>
+  <div class="window-title"><span class="lang-en">RESULT</span><span class="lang-fr">RÉSULTAT</span></div>
   <div class="page-body">
-    <div class="result-banner">{% if result.victory %}<span class="lang-en">VICTORY CONFIRMED</span><span class="lang-fr">VICTOIRE CONFIRMÉE</span>{% else %}<span class="lang-en">DEFEAT RECORDED</span><span class="lang-fr">DÉFAITE ENREGISTRÉE</span>{% endif %}</div>
-
+    <div class="result-banner">{% if result.victory %}<span class="lang-en">VICTORY</span><span class="lang-fr">VICTOIRE</span>{% else %}<span class="lang-en">DEFEAT</span><span class="lang-fr">DÉFAITE</span>{% endif %}</div>
     {% if result.victory %}
     <div class="reward-list">
-      <div><span>EXPERIENCE</span><span>+{{ result.xp }}</span></div>
-      <div><span>GOLD</span><span>+{{ result.gold }}</span></div>
-      <div><span>LOOT</span><span>{% if result.loot_name %}{{ result.loot_name }}{% else %}NONE{% endif %}</span></div>
-      <div><span>LEVELS GAINED</span><span>{{ result.levels_gained }}</span></div>
+      <div><span>XP</span><span>+{{ result.xp }}</span></div>
+      <div><span><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></span><span>+{{ result.gold }}</span></div>
+      <div><span><span class="lang-en">LOOT</span><span class="lang-fr">BUTIN</span></span><span>{% if result.loot_name %}{{ result.loot_name }}{% else %}-{% endif %}</span></div>
+      {% if result.unlocked_floor %}<div><span><span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉ</span></span><span>F{{ result.unlocked_floor|stringformat:"02d" }}</span></div>{% endif %}
     </div>
-
     <div class="action-row">
-      <a class="button primary" href="{% url 'home' %}"><span class="lang-en">&gt; Enter Floor {{ character.floor }}</span><span class="lang-fr">&gt; Entrer à l'étage {{ character.floor }}</span></a>
-      <a class="button" href="{% url 'floor_shop' %}"><span class="lang-en">Check floor shop</span><span class="lang-fr">Voir la boutique</span></a>
-      <a class="button" href="{% url 'inventory' %}"><span class="lang-en">Inventory</span><span class="lang-fr">Inventaire</span></a>
+      {% if result.unlocked_floor %}<a class="button primary" href="{% url 'home' %}"><span class="lang-en">New floor</span><span class="lang-fr">Nouvel étage</span></a>{% else %}<a class="button primary" href="{% url 'explore' %}"><span class="lang-en">Fight again</span><span class="lang-fr">Recombattre</span></a>{% endif %}
+      <a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Floors</span><span class="lang-fr">Étages</span></a>
     </div>
     {% else %}
-    <div class="action-row"><a class="button" href="{% url 'home' %}"><span class="lang-en">&gt; Return to camp</span><span class="lang-fr">&gt; Retourner au camp</span></a></div>
+    <div class="action-row"><a class="button" href="{% url 'home' %}"><span class="lang-en">Back</span><span class="lang-fr">Retour</span></a></div>
     {% endif %}
   </div>
 </section>
