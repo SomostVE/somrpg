@@ -33,6 +33,7 @@ class CombatResult:
     loot_name: str | None = None
     levels_gained: int = 0
     unlocked_floor: int | None = None
+    inhabitants_joined: int = 0
 
 
 def get_active_season():
@@ -100,18 +101,20 @@ def discover_floor(character: Character, floor: TowerFloor | None):
 
 
 def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> CombatResult:
+    from classic.colony import colony_bonuses, recruit_inhabitants
     from classic.services import classic_combat_bonus
 
     defeated_floor = floor_number or character.floor
     frontier_clear = defeated_floor == character.floor
     extra_attack, extra_defense = classic_combat_bonus(character)
+    colony = colony_bonuses(character)
     player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
     rounds = []
     if enemy.is_boss:
         rounds.append(f"BOSS GATE: {enemy.name} blocks Floor {defeated_floor}.")
 
     for n in range(1, 51):
-        damage = max(1, character.total_attack + extra_attack - enemy.defense + random.randint(-1, 1))
+        damage = max(1, character.total_attack + extra_attack + colony["damage"] - enemy.defense + random.randint(-1, 1))
         enemy_hp = max(0, enemy_hp - damage)
         rounds.append(f"Round {n}: {character.name} deals {damage} damage.")
         if enemy_hp <= 0:
@@ -128,7 +131,7 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
 
     xp_multiplier, gold_multiplier = guild_reward_multipliers(character)
     xp_reward = int(enemy.xp_reward * xp_multiplier)
-    gold = int(random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max)) * gold_multiplier)
+    gold = int(random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max)) * gold_multiplier * colony["gold_multiplier"])
     levels = character.grant_xp(xp_reward)
     character.gold += gold
     character.total_gold_earned += gold
@@ -145,13 +148,16 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
     add_season_progress(character, dungeon=1 if unlocked_floor else 0, commerce=gold)
 
     loot_name = None
-    if enemy.loot and random.randint(1, 100) <= enemy.loot_chance:
+    loot_chance = min(100, enemy.loot_chance + colony["loot_bonus"])
+    if enemy.loot and random.randint(1, 100) <= loot_chance:
         entry, _ = add_item(character, enemy.loot, floor_number=defeated_floor)
         discover_item(character, enemy.loot)
         loot_name = entry.display_name
 
     if unlocked_floor:
         discover_floor(character, TowerFloor.objects.filter(floor_number=unlocked_floor).first())
+
+    inhabitants_joined = recruit_inhabitants(character, 3 if enemy.is_boss and frontier_clear else (2 if unlocked_floor else 1))
 
     from classic.services import check_achievements, record_daily
 
@@ -167,6 +173,7 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
         loot_name=loot_name,
         levels_gained=levels,
         unlocked_floor=unlocked_floor,
+        inhabitants_joined=inhabitants_joined,
     )
 
 
