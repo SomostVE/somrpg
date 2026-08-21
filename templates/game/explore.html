@@ -1,1 +1,78 @@
-{% extends "game/base.html" %}{% block content %}<section class="panel encounter"><p class="eyebrow">FLOOR {{ character.floor }}</p><h1>{{ enemy.name }}</h1><div class="enemy-stats"><span>{{ enemy.max_hp }} HP</span><span>{{ enemy.attack }} ATK</span><span>{{ enemy.defense }} DEF</span></div>{% if not result %}<p>A hostile presence blocks the route upward.</p><form method="post">{% csrf_token %}<button class="button primary" type="submit">Begin auto battle</button></form>{% else %}<div class="combat-log">{% for line in result.rounds %}<p>{{ line }}</p>{% endfor %}</div>{% if result.victory %}<div class="rewards"><strong>Victory</strong><span>+{{ result.xp }} XP</span><span>+{{ result.gold }} Gold</span>{% if result.loot_name %}<span>Loot: {{ result.loot_name }}</span>{% endif %}{% if result.levels_gained %}<span>Level up ×{{ result.levels_gained }}</span>{% endif %}</div><a class="button primary" href="{% url 'explore' %}">Continue to Floor {{ character.floor }}</a>{% else %}<a class="button" href="{% url 'home' %}">Return</a>{% endif %}{% endif %}</section>{% endblock %}
+{% extends "game/base.html" %}
+
+{% block title %}Floor {{ character.floor }} - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">DUNGEON ENCOUNTER / FLOOR {{ character.floor }}</div>
+  <div class="page-body">
+    <div class="enemy-header">
+      <div>
+        <p class="section-code">HOSTILE SIGNAL DETECTED</p>
+        <h1 class="page-title">{{ enemy.name }}</h1>
+      </div>
+      <span class="enemy-rank">ACTIVE THREAT</span>
+    </div>
+
+    <p class="story-text">
+      A hostile presence blocks the route to the next floor. Battle resolution is automatic,
+      but every exchange is recorded in the combat log.
+    </p>
+
+    <div class="data-grid">
+      <div class="data-row"><span>ENEMY HP</span><strong>{{ enemy.max_hp }}</strong></div>
+      <div class="data-row"><span>ENEMY ATK</span><strong>{{ enemy.attack }}</strong></div>
+      <div class="data-row"><span>ENEMY DEF</span><strong>{{ enemy.defense }}</strong></div>
+      <div class="data-row"><span>XP REWARD</span><strong>{{ enemy.xp_reward }}</strong></div>
+      <div class="data-row"><span>GOLD</span><strong>{{ enemy.gold_min }}-{{ enemy.gold_max }}</strong></div>
+      <div class="data-row"><span>DROP</span><strong>{% if enemy.loot %}{{ enemy.loot.name }}{% else %}NONE{% endif %}</strong></div>
+    </div>
+
+    {% if not result %}
+    <div class="action-row">
+      <form method="post">
+        {% csrf_token %}
+        <button class="button primary" type="submit">&gt; Begin auto battle</button>
+      </form>
+    </div>
+    <p class="command-note">THE ENCOUNTER WILL RESOLVE TURN BY TURN.</p>
+    {% endif %}
+  </div>
+</section>
+
+{% if result %}
+<section class="retro-window log-window">
+  <div class="window-title">COMBAT LOG</div>
+  <div class="combat-log">
+    {% for line in result.rounds %}
+    <p>{{ line }}</p>
+    {% endfor %}
+  </div>
+</section>
+
+<section class="retro-window reward-window">
+  <div class="window-title">BATTLE RESULT</div>
+  <div class="page-body">
+    <div class="result-banner">{% if result.victory %}VICTORY CONFIRMED{% else %}DEFEAT RECORDED{% endif %}</div>
+
+    {% if result.victory %}
+    <div class="reward-list">
+      <div><span>EXPERIENCE</span><span>+{{ result.xp }}</span></div>
+      <div><span>GOLD</span><span>+{{ result.gold }}</span></div>
+      <div><span>LOOT</span><span>{% if result.loot_name %}{{ result.loot_name }}{% else %}NONE{% endif %}</span></div>
+      <div><span>LEVELS GAINED</span><span>{{ result.levels_gained }}</span></div>
+    </div>
+
+    <div class="action-row">
+      <a class="button primary" href="{% url 'explore' %}">&gt; Proceed to Floor {{ character.floor }}</a>
+      <a class="button" href="{% url 'inventory' %}">Check inventory</a>
+    </div>
+    {% else %}
+    <div class="action-row">
+      <a class="button" href="{% url 'home' %}">&gt; Return to camp</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

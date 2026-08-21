@@ -1,1 +1,43 @@
-{% extends "game/base.html" %}{% block content %}<section class="panel"><p class="eyebrow">CHARACTER</p><h1>{{ character.name }}</h1><div class="detail-list"><div><span>Level</span><strong>{{ character.level }}</strong></div><div><span>XP</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div><div><span>Max HP</span><strong>{{ character.max_hp }}</strong></div><div><span>Attack</span><strong>{{ character.total_attack }}</strong></div><div><span>Defense</span><strong>{{ character.total_defense }}</strong></div><div><span>Floor</span><strong>{{ character.floor }}</strong></div></div></section>{% endblock %}
+{% extends "game/base.html" %}
+
+{% block title %}Character Record - SomRPG{% endblock %}
+
+{% block content %}
+<section class="retro-window page-window">
+  <div class="window-title">CHARACTER RECORD</div>
+  <div class="page-body">
+    <p class="section-code">GUILD FILE // ACTIVE ADVENTURER</p>
+    <h1 class="page-title">{{ character.name }}</h1>
+
+    <p class="story-text">
+      Current combat registration and progression record. Equipment modifiers are included
+      in the final attack and defense values shown below.
+    </p>
+
+    <div class="data-grid">
+      <div class="data-row"><span>LEVEL</span><strong>{{ character.level }}</strong></div>
+      <div class="data-row"><span>XP</span><strong>{{ character.xp }} / {{ character.xp_to_next_level }}</strong></div>
+      <div class="data-row"><span>MAX HP</span><strong>{{ character.max_hp }}</strong></div>
+      <div class="data-row"><span>BASE ATK</span><strong>{{ character.attack }}</strong></div>
+      <div class="data-row"><span>BASE DEF</span><strong>{{ character.defense }}</strong></div>
+      <div class="data-row"><span>GEAR ATK</span><strong>+{{ character.equipped_attack_bonus }}</strong></div>
+      <div class="data-row"><span>GEAR DEF</span><strong>+{{ character.equipped_defense_bonus }}</strong></div>
+      <div class="data-row"><span>TOTAL ATK</span><strong>{{ character.total_attack }}</strong></div>
+      <div class="data-row"><span>TOTAL DEF</span><strong>{{ character.total_defense }}</strong></div>
+      <div class="data-row"><span>GOLD</span><strong>{{ character.gold }}</strong></div>
+      <div class="data-row"><span>CURRENT FLOOR</span><strong>{{ character.floor }}</strong></div>
+    </div>
+  </div>
+</section>
+
+<section class="retro-window help-window">
+  <div class="window-title">PROGRESSION NOTES</div>
+  <div class="page-body">
+    <ul class="text-list">
+      <li>Leveling increases maximum HP, attack and defense.</li>
+      <li>Equipped loot contributes passive combat bonuses.</li>
+      <li>More character systems will be added after the core dungeon loop is stable.</li>
+    </ul>
+  </div>
+</section>
+{% endblock %}
