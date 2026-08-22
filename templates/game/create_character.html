@@ -1,23 +1,34 @@
 {% extends "game/base.html" %}
+{% load career_tags %}
 
 {% block title %}New Record - SomRPG{% endblock %}
 
 {% block standalone_content %}
+{% class_catalog as class_options %}
 <section class="retro-window page-window compact-intro">
   <div class="window-title"><span class="lang-en">NEW ADVENTURER</span><span class="lang-fr">NOUVEL AVENTURIER</span></div>
   <div class="page-body">
     <h1 class="page-title"><span class="lang-en">Enter the Tower</span><span class="lang-fr">Entrer dans la Tour</span></h1>
-    <div class="class-grid">
-      <div class="class-card"><strong><span class="lang-en">VANGUARD</span><span class="lang-fr">AVANT-GARDE</span></strong><span>+10 HP · +2 DEF</span></div>
-      <div class="class-card"><strong><span class="lang-en">STRIDER</span><span class="lang-fr">ÉCLAIREUR</span></strong><span>+2 ATK</span></div>
-      <div class="class-card"><strong><span class="lang-en">ARCANIST</span><span class="lang-fr">ARCANISTE</span></strong><span>+3 ATK · -5 HP</span></div>
-    </div>
-    <form method="post" class="stacked-form">
+    <form method="post" class="stacked-form" style="max-width:none">
       {% csrf_token %}
       <label for="{{ form.name.id_for_label }}"><span class="lang-en">Name</span><span class="lang-fr">Nom</span></label>
       {{ form.name }}{{ form.name.errors }}
-      <label for="{{ form.archetype.id_for_label }}"><span class="lang-en">Class</span><span class="lang-fr">Classe</span></label>
-      {{ form.archetype }}{{ form.archetype.errors }}
+
+      <label><span class="lang-en">Class</span><span class="lang-fr">Classe</span></label>
+      <div class="class-choice-grid expanded-class-grid">
+        {% for entry in class_options %}
+        <label class="button class-choice">
+          <span>
+            <input type="radio" name="archetype" value="{{ entry.code }}" required style="width:auto;min-height:0;margin-right:6px" {% if form.archetype.value == entry.code %}checked{% endif %}>
+            <strong><span class="lang-en">{{ entry.name_en }}</span><span class="lang-fr">{{ entry.name_fr }}</span></strong>
+          </span>
+          <small><span class="lang-en">{{ entry.description_en }}</span><span class="lang-fr">{{ entry.description_fr }}</span></small>
+          <small class="class-bonus"><span class="lang-en">{{ entry.bonus_en }}</span><span class="lang-fr">{{ entry.bonus_fr }}</span></small>
+        </label>
+        {% endfor %}
+      </div>
+      {{ form.archetype.errors }}
+
       <button class="button primary" type="submit"><span class="lang-en">Start in Sector 1</span><span class="lang-fr">Commencer au secteur 1</span></button>
     </form>
   </div>

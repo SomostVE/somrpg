@@ -40,6 +40,14 @@ class ExpandedClassRosterTests(TestCase):
         self.assertEqual(character.archetype, "samurai")
         self.assertEqual(character.gold, 20)
 
+    def test_changing_class_clears_incompatible_subclass(self):
+        character = Character.objects.create(name="Subclass Reset", archetype="rogue", gold=100)
+        CharacterCareer.objects.create(character=character, subclass="assassin")
+        response = self.client.post("/options/class/change/", {"archetype": "paladin"})
+        self.assertEqual(response.status_code, 302)
+        career = CharacterCareer.objects.get(character=character)
+        self.assertEqual(career.subclass, "")
+
     def test_new_subclass_can_be_selected(self):
         character = Character.objects.create(name="Shadow", archetype="rogue")
         response = self.client.post("/options/subclass/select/", {"subclass": "assassin"})
@@ -62,3 +70,42 @@ class ExpandedClassRosterTests(TestCase):
         response = self.client.get("/profile/")
         self.assertContains(response, "Rogue")
         self.assertContains(response, "Roublard")
+
+    def test_character_creation_lists_entire_roster_in_both_languages(self):
+        response = self.client.get("/start/")
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="archetype"', count=len(CLASS_INFO), html=False)
+        for info in CLASS_INFO.values():
+            self.assertContains(response, info["name_en"])
+            self.assertContains(response, info["name_fr"])
+        self.assertNotContains(response, "+10 HP")
+        self.assertNotContains(response, "+2 DEF")
+        self.assertNotContains(response, "+3 ATK")
+
+    def test_character_creation_accepts_new_class(self):
+        response = self.client.post("/start/", {"name": "Fresh Samurai", "archetype": "samurai"})
+        self.assertEqual(response.status_code, 302)
+        character = Character.objects.get(name="Fresh Samurai")
+        self.assertEqual(character.archetype, "samurai")
+        self.assertEqual(character.class_name_fr, "Samouraï")
+
+    def test_new_class_smoke_test_on_primary_pages(self):
+        Character.objects.create(name="Smoke Necromancer", archetype="necromancer", floor=20, gold=500)
+        pages = (
+            "/",
+            "/profile/",
+            "/tower/",
+            "/explore/",
+            "/shop/",
+            "/quests/",
+            "/guard/",
+            "/workshop/",
+            "/colony/",
+            "/options/",
+            "/index/",
+            "/community/",
+        )
+        for url in pages:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 200)
