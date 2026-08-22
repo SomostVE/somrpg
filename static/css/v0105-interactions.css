@@ -1,2 +1,0 @@
-.profile-tabs a{display:inline-flex;align-items:center;justify-content:center;min-width:110px;cursor:pointer}.profile-tabs a:hover,.profile-tabs a:focus-visible{border-color:var(--cyan);background:#10243a;color:#fff;outline:none}.profile-tabs a.is-active{border-color:#b68b43;background:linear-gradient(180deg,#5b4728 0%,#302616 100%);color:var(--gold);box-shadow:inset 0 0 0 1px rgba(255,210,119,.1)}
-@media(max-width:760px){.profile-tabs a{min-width:max-content}}
