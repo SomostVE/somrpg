@@ -1,3 +1,4 @@
+import logging
 import random
 from dataclasses import dataclass
 
@@ -15,6 +16,8 @@ from .models import (
 )
 from .tower import add_item
 
+
+logger = logging.getLogger(__name__)
 
 DUNGEON_COEFFICIENT = 1.0
 COMMERCE_COEFFICIENT = 2.0
@@ -100,14 +103,61 @@ def discover_floor(character: Character, floor: TowerFloor | None):
     return discover(character, "floor", floor.floor_number, f"Sector {floor.floor_number} — {floor.name}")
 
 
-def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> CombatResult:
-    from classic.colony import colony_bonuses, recruit_inhabitants
-    from classic.services import classic_combat_bonus
+def _safe_classic_combat_bonus(character):
+    try:
+        from classic.services import classic_combat_bonus
 
+        return classic_combat_bonus(character)
+    except Exception:
+        logger.exception("Classic combat bonus failed for character %s", character.pk)
+        return 0, 0
+
+
+def _safe_colony_bonuses(character):
+    try:
+        from classic.colony import colony_bonuses
+
+        return colony_bonuses(character)
+    except Exception:
+        logger.exception("Colony combat bonuses failed for character %s", character.pk)
+        return {"damage": 0, "gold_multiplier": 1.0, "loot_bonus": 0}
+
+
+def _safe_guild_reward_multipliers(character):
+    try:
+        from classic.services import guild_reward_multipliers
+
+        return guild_reward_multipliers(character)
+    except Exception:
+        logger.exception("Guild reward multipliers failed for character %s", character.pk)
+        return 1.0, 1.0
+
+
+def _safe_recruit_inhabitants(character, amount):
+    try:
+        from classic.colony import recruit_inhabitants
+
+        return recruit_inhabitants(character, amount)
+    except Exception:
+        logger.exception("Colony recruitment failed after combat for character %s", character.pk)
+        return 0
+
+
+def _safe_post_combat_hooks(character):
+    try:
+        from classic.services import check_achievements, record_daily
+
+        record_daily(character, dungeon_clears=1)
+        check_achievements(character)
+    except Exception:
+        logger.exception("Optional post-combat hooks failed for character %s", character.pk)
+
+
+def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> CombatResult:
     defeated_floor = floor_number or character.floor
     frontier_clear = defeated_floor == character.floor
-    extra_attack, extra_defense = classic_combat_bonus(character)
-    colony = colony_bonuses(character)
+    extra_attack, extra_defense = _safe_classic_combat_bonus(character)
+    colony = _safe_colony_bonuses(character)
     player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
     rounds = []
     if enemy.is_boss:
@@ -127,9 +177,7 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
     if enemy_hp > 0:
         return CombatResult(False, enemy, rounds)
 
-    from classic.services import guild_reward_multipliers
-
-    xp_multiplier, gold_multiplier = guild_reward_multipliers(character)
+    xp_multiplier, gold_multiplier = _safe_guild_reward_multipliers(character)
     xp_reward = int(enemy.xp_reward * xp_multiplier)
     gold = int(random.randint(enemy.gold_min, max(enemy.gold_min, enemy.gold_max)) * gold_multiplier * colony["gold_multiplier"])
     levels = character.grant_xp(xp_reward)
@@ -145,24 +193,33 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
             unlocked_floor = next_floor.floor_number
 
     character.save()
-    add_season_progress(character, dungeon=1 if unlocked_floor else 0, commerce=gold)
+
+    try:
+        add_season_progress(character, dungeon=1 if unlocked_floor else 0, commerce=gold)
+    except Exception:
+        logger.exception("Season progress failed after combat for character %s", character.pk)
 
     loot_name = None
     loot_chance = min(100, enemy.loot_chance + colony["loot_bonus"])
     if enemy.loot and random.randint(1, 100) <= loot_chance:
-        entry, _ = add_item(character, enemy.loot, floor_number=defeated_floor)
-        discover_item(character, enemy.loot)
-        loot_name = entry.display_name
+        try:
+            entry, _ = add_item(character, enemy.loot, floor_number=defeated_floor)
+            discover_item(character, enemy.loot)
+            loot_name = entry.display_name
+        except Exception:
+            logger.exception("Combat loot failed for character %s and enemy %s", character.pk, enemy.pk)
 
     if unlocked_floor:
-        discover_floor(character, TowerFloor.objects.filter(floor_number=unlocked_floor).first())
+        try:
+            discover_floor(character, TowerFloor.objects.filter(floor_number=unlocked_floor).first())
+        except Exception:
+            logger.exception("Sector discovery failed after combat for character %s", character.pk)
 
-    inhabitants_joined = recruit_inhabitants(character, 3 if enemy.is_boss and frontier_clear else (2 if unlocked_floor else 1))
-
-    from classic.services import check_achievements, record_daily
-
-    record_daily(character, dungeon_clears=1)
-    check_achievements(character)
+    inhabitants_joined = _safe_recruit_inhabitants(
+        character,
+        3 if enemy.is_boss and frontier_clear else (2 if unlocked_floor else 1),
+    )
+    _safe_post_combat_hooks(character)
 
     return CombatResult(
         True,

@@ -56,6 +56,16 @@ def _equipment_slots(entries):
     return [{"slot": slot, "entry": equipped.get(slot)} for slot in EQUIPMENT_SLOT_ORDER]
 
 
+def _effective_stat(character, stat):
+    if stat == "health":
+        return character.combat_max_hp
+    if stat == "attack":
+        return character.total_attack
+    if stat == "defense":
+        return character.total_defense
+    raise ValueError("Unknown stat")
+
+
 def profile(request):
     character = get_character(request)
     if not character:
@@ -76,13 +86,18 @@ def profile(request):
         {"entry": entry, "sell_value": sell_value(character, entry.item)}
         for entry in entries
     ]
-    stat_upgrades = {
-        stat: {
-            "cost": stat_upgrade_cost(character, stat),
-            "affordable": character.gold >= stat_upgrade_cost(character, stat),
+    stat_upgrades = {}
+    for stat, upgrade in STAT_UPGRADES.items():
+        cost = stat_upgrade_cost(character, stat)
+        value_before = _effective_stat(character, stat)
+        stat_upgrades[stat] = {
+            "cost": cost,
+            "affordable": character.gold >= cost,
+            "value_before": value_before,
+            "value_after": value_before + upgrade["amount"],
+            "gold_before": character.gold,
+            "gold_after": character.gold - cost,
         }
-        for stat in STAT_UPGRADES
-    }
 
     return render(
         request,
