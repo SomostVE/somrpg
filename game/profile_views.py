@@ -56,14 +56,34 @@ def _equipment_slots(entries):
     return [{"slot": slot, "entry": equipped.get(slot)} for slot in EQUIPMENT_SLOT_ORDER]
 
 
-def _effective_stat(character, stat):
-    if stat == "health":
-        return character.combat_max_hp
-    if stat == "attack":
-        return character.total_attack
-    if stat == "defense":
-        return character.total_defense
-    raise ValueError("Unknown stat")
+def _effective_stats(character, entries):
+    equipped_attack = sum(
+        entry.item.attack_bonus + entry.affix_attack_bonus
+        for entry in entries
+        if entry.equipped
+    )
+    equipped_defense = sum(
+        entry.item.defense_bonus + entry.affix_defense_bonus
+        for entry in entries
+        if entry.equipped
+    )
+    return {
+        "health": character.combat_max_hp,
+        "attack": (
+            character.attack
+            + character.class_attack_bonus
+            + equipped_attack
+            + character.skill_attack_bonus
+            + character.title_attack_bonus
+        ),
+        "defense": (
+            character.defense
+            + character.class_defense_bonus
+            + equipped_defense
+            + character.skill_defense_bonus
+            + character.title_defense_bonus
+        ),
+    }
 
 
 def profile(request):
@@ -75,21 +95,31 @@ def profile(request):
     entries = list(
         character.inventory.select_related("item").order_by("item__slot", "item__rarity", "item__name")
     )
-    discoveries = CodexDiscovery.objects.filter(character=character)
-    enemy_entries = discoveries.filter(entry_type="enemy")
-    item_entries = discoveries.filter(entry_type="item")
-    floor_entries = discoveries.filter(entry_type="floor")
+    discoveries = list(CodexDiscovery.objects.filter(character=character))
+    enemy_entries = [entry for entry in discoveries if entry.entry_type == "enemy"]
+    item_entries = [entry for entry in discoveries if entry.entry_type == "item"]
+    floor_entries = [entry for entry in discoveries if entry.entry_type == "floor"]
+
+    enemy_total = Enemy.objects.filter(enabled=True).count()
+    item_total = Item.objects.count()
+    floor_total = TowerFloor.objects.count()
+    total_entries = enemy_total + item_total + floor_total
+    discovered_entries = len(discoveries)
+    completion = min(100.0, discovered_entries * 100.0 / total_entries) if total_entries else 0.0
+
     colony = get_colony(character)
+    bonuses = colony_bonuses(character, colony)
     rewards = reward_catalog(character)
+    effective_stats = _effective_stats(character, entries)
 
     inventory_rows = [
-        {"entry": entry, "sell_value": sell_value(character, entry.item)}
+        {"entry": entry, "sell_value": sell_value(character, entry.item, bonuses=bonuses)}
         for entry in entries
     ]
     stat_upgrades = {}
     for stat, upgrade in STAT_UPGRADES.items():
         cost = stat_upgrade_cost(character, stat)
-        value_before = _effective_stat(character, stat)
+        value_before = effective_stats[stat]
         stat_upgrades[stat] = {
             "cost": cost,
             "affordable": character.gold >= cost,
@@ -113,15 +143,15 @@ def profile(request):
             titles=rewards["titles"],
             active_title_reward=active_title(character),
             colony=colony,
-            colony_bonuses=colony_bonuses(character),
+            colony_bonuses=bonuses,
             enemy_entries=enemy_entries,
             item_entries=item_entries,
             floor_entries=floor_entries,
-            enemy_total=Enemy.objects.filter(enabled=True).count(),
-            item_total=Item.objects.count(),
-            floor_total=TowerFloor.objects.count(),
-            discovered_entries=discoveries.count(),
-            completion=character.codex_completion,
+            enemy_total=enemy_total,
+            item_total=item_total,
+            floor_total=floor_total,
+            discovered_entries=discovered_entries,
+            completion=completion,
         ),
     )
 
