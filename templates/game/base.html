@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="{% static 'css/v080-compact.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v081-readability.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v090-visual.css' %}?v={{ version }}">
-  <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}">
+  <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}&profile=2">
   <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}&ui=4">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
@@ -53,29 +53,20 @@
     {% if character %}
     <div class="game-layout has-chat">
       <aside class="sidebar compact-sidebar">
-        <section class="retro-window player-card tower-player-card">
+        <section class="retro-window player-card tower-player-card identity-only-player-card">
           <div class="player-head">
             <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
             <div class="player-name-block">
               <strong>{{ character.name }}</strong>
-              <small><span class="lang-en">LV</span><span class="lang-fr">NV</span> {{ character.level }} · S{{ active_floor|stringformat:"02d" }} / S{{ character.floor|stringformat:"02d" }}</small>
+              <small><span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }}</span></small>
             </div>
           </div>
           <div class="floor-chip">
-            <span>S{{ active_floor|stringformat:"02d" }}</span>
+            <span><span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ active_floor|stringformat:"02d" }}</span>
             <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</strong>
-            <small>MAX S{{ character.floor|stringformat:"02d" }}</small>
+            <small><span class="lang-en">Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span></small>
           </div>
-          <div class="quick-stats">
-            <span><b><span class="lang-en">HP</span><span class="lang-fr">PV</span></b>{{ character.combat_max_hp }}</span>
-            <span><b><span class="lang-en">ATK</span><span class="lang-fr">ATQ</span></b>{{ character.total_attack }}</span>
-            <span><b>DEF</b>{{ character.total_defense }}</span>
-            <span><b><span class="lang-en">G</span><span class="lang-fr">OR</span></b>{{ character.gold }}</span>
-            <span><b><span class="lang-en">SUP</span><span class="lang-fr">RES</span></b>{{ character.guard_resources }}</span>
-            <span><b>CODEX</b>{{ character.codex_completion|floatformat:0 }}%</span>
-          </div>
-          <div class="xp-mini"><span style="width:{% widthratio character.xp character.xp_to_next_level 100 %}%"></span></div>
-          <small class="xp-caption">XP {{ character.xp }}/{{ character.xp_to_next_level }} · <span class="lang-en">CRAFT</span><span class="lang-fr">ART.</span> {{ character.crafting_xp }}</small>
+          <div class="quick-stats" hidden aria-hidden="true"></div>
         </section>
 
         <nav class="retro-window command-window compact-command evolving-command" aria-label="Main commands">
