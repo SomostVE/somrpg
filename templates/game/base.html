@@ -58,13 +58,11 @@
             <div class="player-mark">{{ character.name|slice:":1"|upper }}</div>
             <div class="player-name-block">
               <strong>{{ character.name }}</strong>
-              <small><span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }}</span></small>
+              <small>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</small>
             </div>
           </div>
           <div class="floor-chip">
-            <span><span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ active_floor|stringformat:"02d" }}</span>
-            <strong>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</strong>
-            <small><span class="lang-en">Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span></small>
+            <strong><span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ active_floor|stringformat:"02d" }} / {{ character.floor|stringformat:"02d" }}</strong>
           </div>
           <div class="quick-stats" hidden aria-hidden="true"></div>
         </section>

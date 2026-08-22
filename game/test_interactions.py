@@ -78,8 +78,9 @@ class InteractionAuditTests(TestCase):
     def test_sidebar_keeps_identity_but_removes_character_stats(self):
         response = self.client.get("/")
         self.assertContains(response, "identity-only-player-card")
-        self.assertContains(response, "Secteur actuel")
-        self.assertContains(response, "Secteur maximal débloqué")
+        self.assertContains(response, "Secteur</span> 05 / 05", html=False)
+        self.assertNotContains(response, "Secteur actuel")
+        self.assertNotContains(response, "Secteur maximal débloqué")
         self.assertNotContains(response, "xp-mini")
         self.assertNotContains(response, "xp-caption")
 
