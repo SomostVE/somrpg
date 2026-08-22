@@ -72,10 +72,11 @@ def roll_affix(entry: InventoryItem, floor_number: int, force=False):
     if not eligible:
         return entry
 
-    weighted = []
-    for row in eligible:
-        weighted.extend([row] * row[4])
-    _, name, attack, defense, _ = random.choice(weighted)
+    _, name, attack, defense, _ = random.choices(
+        eligible,
+        weights=[row[4] for row in eligible],
+        k=1,
+    )[0]
     entry.affix_name = name
     entry.affix_attack_bonus = attack
     entry.affix_defense_bonus = defense

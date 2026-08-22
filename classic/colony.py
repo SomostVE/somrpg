@@ -98,6 +98,6 @@ def collect_colony_gold(character):
     return amount
 
 
-def sell_value(character, item):
-    bonuses = colony_bonuses(character)
+def sell_value(character, item, bonuses=None):
+    bonuses = bonuses or colony_bonuses(character)
     return max(1, int(item.shop_price * bonuses["sell_multiplier"]))

@@ -2,7 +2,7 @@ import logging
 import random
 from dataclasses import dataclass
 
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.utils import timezone
 
 from .models import (
@@ -159,17 +159,23 @@ def resolve_encounter(character: Character, enemy: Enemy, floor_number=None) -> 
     extra_attack, extra_defense = _safe_classic_combat_bonus(character)
     colony = _safe_colony_bonuses(character)
     player_hp, enemy_hp = character.combat_max_hp, enemy.max_hp
+
+    # Effective combat values are stable for the whole encounter. Calculating
+    # them once avoids re-querying equipped items on every round.
+    player_attack = character.total_attack + extra_attack + colony["damage"]
+    player_defense = character.total_defense + extra_defense
+
     rounds = []
     if enemy.is_boss:
         rounds.append(f"BOSS GATE: {enemy.name} blocks Sector {defeated_floor}.")
 
     for n in range(1, 51):
-        damage = max(1, character.total_attack + extra_attack + colony["damage"] - enemy.defense + random.randint(-1, 1))
+        damage = max(1, player_attack - enemy.defense + random.randint(-1, 1))
         enemy_hp = max(0, enemy_hp - damage)
         rounds.append(f"Round {n}: {character.name} deals {damage} damage.")
         if enemy_hp <= 0:
             break
-        damage = max(1, enemy.attack - character.total_defense - extra_defense + random.randint(-1, 1))
+        damage = max(1, enemy.attack - player_defense + random.randint(-1, 1))
         player_hp = max(0, player_hp - damage)
         rounds.append(f"{enemy.name} deals {damage} damage.")
         if player_hp <= 0:
@@ -255,15 +261,18 @@ def _dense_ranks(rows, key):
 
 
 def build_standings(season: CommunitySeason):
+    codex_total = Enemy.objects.filter(enabled=True).count() + Item.objects.count() + TowerFloor.objects.count()
     progresses = list(
         SeasonProgress.objects.filter(season=season, character__user__isnull=False)
         .select_related("character", "character__user", "character__user__discord_profile")
+        .annotate(codex_discovered=Count("character__codex_discoveries"))
     )
 
     rows = []
     for progress in progresses:
         character = progress.character
         profile = getattr(character.user, "discord_profile", None)
+        codex_value = min(100.0, progress.codex_discovered * 100.0 / codex_total) if codex_total else 0.0
         rows.append(
             {
                 "character_id": character.id,
@@ -272,7 +281,7 @@ def build_standings(season: CommunitySeason):
                 "dungeon_value": progress.dungeon_clears,
                 "commerce_value": progress.commerce_gold,
                 "crafting_value": progress.crafting_xp,
-                "codex_value": character.codex_completion,
+                "codex_value": codex_value,
             }
         )
 
