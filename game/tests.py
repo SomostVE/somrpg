@@ -57,12 +57,14 @@ class CharacterOwnershipTests(TestCase):
         Character.objects.create(user=user_b, name="Beta Hero")
         request = RequestFactory().get("/")
         request.user = user_a
+        request.session = {}
         self.assertEqual(get_character(request), char_a)
 
     def test_anonymous_local_mode_uses_unowned_save(self):
         local_character = Character.objects.create(name="Local Hero")
         request = RequestFactory().get("/")
         request.user = type("Anonymous", (), {"is_authenticated": False})()
+        request.session = {}
         self.assertEqual(get_character(request), local_character)
 
 
@@ -134,6 +136,7 @@ class TowerProgressionTests(TestCase):
         early_codes = {entry["code"] for section in early_sections for entry in section["entries"]}
         advanced_codes = {entry["code"] for section in advanced_sections for entry in section["entries"]}
         self.assertIn("profile", early_codes)
+        self.assertIn("options", early_codes)
         self.assertIn("quests", early_codes)
         self.assertNotIn("character", early_codes)
         self.assertNotIn("inventory", early_codes)
@@ -239,15 +242,15 @@ class BilingualLayoutTests(TestCase):
         Character.objects.create(name="Layout Hero")
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, 'data-language="fr"')
-        self.assertContains(response, 'data-language="en"')
         self.assertContains(response, "css/v090-visual.css")
         self.assertContains(response, "css/v010-colony-profile.css")
         self.assertContains(response, "css/v0102-quests.css")
+        self.assertContains(response, "css/v013-options.css")
         self.assertContains(response, "classic/classic.css")
-        self.assertContains(response, "?v=0.12.2")
-        self.assertContains(response, "VER <span id=\"version-label\">0.12.2</span>", html=False)
+        self.assertContains(response, "?v=0.13.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.13.0</span>", html=False)
         self.assertContains(response, "menu-entry-profile")
+        self.assertContains(response, "menu-entry-options")
         self.assertContains(response, "menu-entry-quests")
         self.assertContains(response, 'class="menu-glyph lang-fr" data-glyph="C"', html=False)
         self.assertContains(response, '<span class="lang-fr">amp</span>', html=False)
@@ -300,7 +303,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.12.2")
+        self.assertEqual(response.json()["version"], "0.13.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 

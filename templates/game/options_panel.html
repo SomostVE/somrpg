@@ -1,0 +1,56 @@
+<section class="retro-window options-shell">
+  <div class="window-title"><span class="lang-en">OPTIONS</span><span class="lang-fr">OPTIONS</span></div>
+  <div class="options-grid">
+    <section class="option-card">
+      <div class="option-card-title"><span class="lang-en">LANGUAGE</span><span class="lang-fr">LANGUE</span></div>
+      <p><span class="lang-en">Interface language</span><span class="lang-fr">Langue de l'interface</span></p>
+      <div class="option-actions language-option-buttons" aria-label="Language / Langue">
+        <button class="button" type="button" data-language="fr" aria-pressed="false">FR</button>
+        <button class="button" type="button" data-language="en" aria-pressed="false">EN</button>
+      </div>
+    </section>
+
+    <section class="option-card">
+      <div class="option-card-title"><span class="lang-en">ACCOUNT</span><span class="lang-fr">COMPTE</span></div>
+      {% if request.user.is_authenticated and discord_profile %}
+        <p><span class="lang-en">Discord connected as</span><span class="lang-fr">Discord connecté en tant que</span> <strong>{{ discord_profile.display_name }}</strong></p>
+        <form method="post" action="{% url 'discord_logout' %}">{% csrf_token %}<button class="button danger" type="submit"><span class="lang-en">Disconnect</span><span class="lang-fr">Se déconnecter</span></button></form>
+      {% elif discord_configured %}
+        <p><span class="lang-en">Connect Discord to keep your characters attached to your account and unlock community chat.</span><span class="lang-fr">Connectez Discord pour rattacher vos personnages à votre compte et débloquer le chat communautaire.</span></p>
+        <a class="button primary" href="{% url 'discord_login' %}"><span class="lang-en">Connect Discord</span><span class="lang-fr">Connecter Discord</span></a>
+      {% else %}
+        <p><span class="lang-en">Discord OAuth is not configured on this server.</span><span class="lang-fr">Discord OAuth n'est pas configuré sur ce serveur.</span></p>
+        <small><span class="lang-en">Redirect URI to register:</span><span class="lang-fr">URI de redirection à enregistrer :</span> <code>{{ discord_redirect_uri }}</code></small>
+      {% endif %}
+    </section>
+
+    <section class="option-card option-card-wide">
+      <div class="option-card-title"><span class="lang-en">CHARACTERS</span><span class="lang-fr">PERSONNAGES</span> <span>{{ characters|length }} / {{ character_limit }}</span></div>
+      <div class="character-slot-grid">
+        {% for entry in characters %}
+        <article class="character-slot {% if character and entry.id == character.id %}is-active{% endif %}">
+          <div class="character-slot-mark">{{ entry.name|slice:":1"|upper }}</div>
+          <div class="character-slot-copy">
+            <strong>{{ entry.name }}</strong>
+            <small><span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ entry.level }} · <span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ entry.floor|stringformat:"02d" }} · {{ entry.get_archetype_display }}</small>
+          </div>
+          {% if character and entry.id == character.id %}<span class="active-character-label"><span class="lang-en">ACTIVE</span><span class="lang-fr">ACTIF</span></span>{% else %}<form method="post" action="{% url 'select_character' entry.id %}">{% csrf_token %}<button class="button" type="submit"><span class="lang-en">Use</span><span class="lang-fr">Utiliser</span></button></form>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+      {% if characters|length < character_limit %}<a class="button primary create-character-button" href="{% url 'create_character' %}"><span class="lang-en">Create another character</span><span class="lang-fr">Créer un autre personnage</span></a>{% endif %}
+    </section>
+
+    {% if character %}
+    <section class="option-card option-card-wide">
+      <div class="option-card-title"><span class="lang-en">CLASS CHANGE</span><span class="lang-fr">CHANGEMENT DE CLASSE</span></div>
+      <div class="class-change-summary"><span><span class="lang-en">Current class</span><span class="lang-fr">Classe actuelle</span> : <strong>{{ character.get_archetype_display }}</strong></span><span><span class="lang-en">Cost</span><span class="lang-fr">Coût</span> : <strong>{{ class_change_cost }} Or</strong></span><span><span class="lang-en">Gold</span><span class="lang-fr">Or</span> : <strong>{{ character.gold }}</strong></span></div>
+      <div class="class-choice-grid">
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="vanguard"><button class="button class-choice" type="submit" {% if character.archetype == 'vanguard' or character.gold < class_change_cost %}disabled{% endif %}><strong>Vanguard</strong><small><span class="lang-en">+10 HP · +2 Defense</span><span class="lang-fr">+10 PV · +2 Défense</span></small></button></form>
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="strider"><button class="button class-choice" type="submit" {% if character.archetype == 'strider' or character.gold < class_change_cost %}disabled{% endif %}><strong>Strider</strong><small><span class="lang-en">+2 Attack</span><span class="lang-fr">+2 Attaque</span></small></button></form>
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="arcanist"><button class="button class-choice" type="submit" {% if character.archetype == 'arcanist' or character.gold < class_change_cost %}disabled{% endif %}><strong>Arcanist</strong><small><span class="lang-en">+3 Attack · -5 HP</span><span class="lang-fr">+3 Attaque · -5 PV</span></small></button></form>
+      </div>
+    </section>
+    {% endif %}
+  </div>
+</section>

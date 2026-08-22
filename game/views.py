@@ -47,16 +47,33 @@ DISCORD_AUTHORIZE_URL = "https://discord.com/oauth2/authorize"
 DISCORD_TOKEN_URL = "https://discord.com/api/oauth2/token"
 DISCORD_USER_URL = "https://discord.com/api/users/@me"
 ACTIVE_FLOOR_SESSION_KEY = "somrpg.active_floor"
+ACTIVE_CHARACTER_SESSION_KEY = "somrpg.active_character_id"
+CHARACTER_LIMIT = 3
 
 
 def discord_configured():
     return bool(settings.DISCORD_CLIENT_ID and settings.DISCORD_CLIENT_SECRET)
 
 
-def get_character(request):
+def owned_characters(request):
     if request.user.is_authenticated:
-        return Character.objects.filter(user=request.user).first()
-    return Character.objects.filter(user__isnull=True).order_by("id").first()
+        return Character.objects.filter(user=request.user).order_by("id")
+    return Character.objects.filter(user__isnull=True).order_by("id")
+
+
+def get_character(request):
+    characters = owned_characters(request)
+    try:
+        active_id = int(request.session.get(ACTIVE_CHARACTER_SESSION_KEY, 0))
+    except (TypeError, ValueError):
+        active_id = 0
+
+    character = characters.filter(pk=active_id).first() if active_id else None
+    if character is None:
+        character = characters.first()
+    if character is not None:
+        request.session[ACTIVE_CHARACTER_SESSION_KEY] = character.pk
+    return character
 
 
 def active_floor_number(request, character):
@@ -124,8 +141,10 @@ def home(request):
 
 
 def create_character(request):
-    if get_character(request):
-        return redirect("home")
+    characters = owned_characters(request)
+    if characters.count() >= CHARACTER_LIMIT:
+        messages.warning(request, f"Character limit reached ({CHARACTER_LIMIT}).")
+        return redirect("options")
 
     form = CharacterCreateForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
@@ -133,13 +152,18 @@ def create_character(request):
         if request.user.is_authenticated:
             character.user = request.user
         character.save()
+        request.session[ACTIVE_CHARACTER_SESSION_KEY] = character.pk
         request.session[ACTIVE_FLOOR_SESSION_KEY] = 1
         discover_floor(character, current_floor(character, 1))
         if request.user.is_authenticated:
             get_season_progress(character)
         return redirect("home")
 
-    return render(request, "game/create_character.html", context(request, None, form=form))
+    return render(
+        request,
+        "game/create_character.html",
+        context(request, None, form=form, character_count=characters.count(), character_limit=CHARACTER_LIMIT),
+    )
 
 
 def character_sheet(request):
@@ -428,7 +452,7 @@ def community(request):
     )
 
 
-def _discord_redirect_uri(request):
+def discord_redirect_uri(request):
     if settings.DISCORD_REDIRECT_URI:
         return settings.DISCORD_REDIRECT_URI
     return request.build_absolute_uri(reverse("discord_callback"))
@@ -437,17 +461,16 @@ def _discord_redirect_uri(request):
 def discord_login(request):
     if not discord_configured():
         messages.error(request, "Discord login is not configured on this SomRPG server yet.")
-        return redirect("community")
+        return redirect("options")
 
     state = secrets.token_urlsafe(32)
     request.session["discord_oauth_state"] = state
     params = {
         "client_id": settings.DISCORD_CLIENT_ID,
-        "redirect_uri": _discord_redirect_uri(request),
+        "redirect_uri": discord_redirect_uri(request),
         "response_type": "code",
         "scope": "identify",
         "state": state,
-        "prompt": "none",
     }
     return redirect(f"{DISCORD_AUTHORIZE_URL}?{urlencode(params)}")
 
@@ -458,9 +481,9 @@ def discord_callback(request):
     code = request.GET.get("code")
     if not expected_state or not state or not secrets.compare_digest(expected_state, state) or not code:
         messages.error(request, "Discord authentication could not be validated.")
-        return redirect("community")
+        return redirect("options")
 
-    redirect_uri = _discord_redirect_uri(request)
+    redirect_uri = discord_redirect_uri(request)
     try:
         token_response = requests.post(
             DISCORD_TOKEN_URL,
@@ -485,7 +508,7 @@ def discord_callback(request):
         discord_user = user_response.json()
     except (requests.RequestException, KeyError, ValueError):
         messages.error(request, "Discord authentication failed. Please try again.")
-        return redirect("community")
+        return redirect("options")
 
     discord_id = str(discord_user["id"])
     profile = DiscordProfile.objects.filter(discord_id=discord_id).select_related("user").first()
@@ -500,26 +523,31 @@ def discord_callback(request):
     profile.avatar = discord_user.get("avatar") or ""
     profile.save()
 
+    local_active_id = request.session.get(ACTIVE_CHARACTER_SESSION_KEY)
     auth_login(request, user, backend="django.contrib.auth.backends.ModelBackend")
 
-    if not Character.objects.filter(user=user).exists():
-        owned_exists = Character.objects.filter(user__isnull=False).exists()
-        unowned = Character.objects.filter(user__isnull=True)
-        if not owned_exists and unowned.count() == 1:
-            legacy_character = unowned.first()
-            legacy_character.user = user
-            legacy_character.save(update_fields=["user", "updated_at"])
+    user_characters = Character.objects.filter(user=user).order_by("id")
+    if not user_characters.exists():
+        other_owned_exists = Character.objects.filter(user__isnull=False).exclude(user=user).exists()
+        if not other_owned_exists:
+            for legacy_character in Character.objects.filter(user__isnull=True).order_by("id")[:CHARACTER_LIMIT]:
+                legacy_character.user = user
+                legacy_character.save(update_fields=["user", "updated_at"])
 
-    character = Character.objects.filter(user=user).first()
+    user_characters = Character.objects.filter(user=user).order_by("id")
+    character = user_characters.filter(pk=local_active_id).first() if local_active_id else None
+    if character is None:
+        character = user_characters.first()
     if character:
+        request.session[ACTIVE_CHARACTER_SESSION_KEY] = character.pk
         request.session[ACTIVE_FLOOR_SESSION_KEY] = character.floor
         get_season_progress(character)
     messages.success(request, f"Connected as {profile.display_name}.")
-    return redirect("community")
+    return redirect("options")
 
 
 @require_POST
 def discord_logout(request):
     auth_logout(request)
     messages.success(request, "Discord account disconnected from this session.")
-    return redirect("community")
+    return redirect("options")

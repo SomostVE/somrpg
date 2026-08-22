@@ -1,6 +1,6 @@
 from django.urls import path
 
-from . import api_views, colony_views, index_views, profile_views, quest_views, views
+from . import api_views, colony_views, index_views, options_views, profile_views, quest_views, views
 
 
 urlpatterns = [
@@ -31,6 +31,9 @@ urlpatterns = [
     path("colony/", colony_views.colony, name="colony"),
     path("colony/upgrade/", colony_views.colony_upgrade, name="colony_upgrade"),
     path("colony/collect/", colony_views.colony_collect, name="colony_collect"),
+    path("options/", options_views.options, name="options"),
+    path("options/character/<int:character_id>/select/", options_views.select_character, name="select_character"),
+    path("options/class/change/", options_views.change_class, name="change_class"),
     path("index/", index_views.content_index, name="content_index"),
     path("community/", views.community, name="community"),
     path("api/version/", api_views.version_status, name="version_status"),
