@@ -11,7 +11,7 @@
     <a href="{% url 'profile' %}?tab=codex" class="{% if active_profile_tab == 'codex' %}is-active{% endif %}" {% if active_profile_tab == 'codex' %}aria-current="page"{% endif %}>CODEX</a>
   </nav>
 
-  <div class="profile-section profile-character" data-profile-panel="character" {% if active_profile_tab != 'character' %}hidden{% endif %}>
+  <div class="profile-section profile-character" data-profile-panel="character" data-sector-code="S{{ active_floor|stringformat:'02d' }}" {% if active_profile_tab != 'character' %}hidden{% endif %}>
     <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
     <div class="profile-identity">
       <p class="section-code">
