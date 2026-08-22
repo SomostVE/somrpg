@@ -71,11 +71,11 @@ class Character(models.Model):
         ("arcanist", "Arcanist"),
     ]
 
-    user = models.OneToOneField(
+    user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         null=True,
         blank=True,
-        related_name="somrpg_character",
+        related_name="somrpg_characters",
         on_delete=models.CASCADE,
     )
     name = models.CharField(max_length=40, default="Adventurer")
