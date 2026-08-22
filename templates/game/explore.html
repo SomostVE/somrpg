@@ -24,7 +24,7 @@
     </div>
 
     {% if not result %}
-    <div class="action-row"><form method="post">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></button></form><a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></a></div>
+    <div class="action-row"><form method="post" action="{% url 'explore' %}">{% csrf_token %}<button class="button primary" type="submit"><span class="lang-en">Fight</span><span class="lang-fr">Combattre</span></button></form><a class="button" href="{% url 'tower_map' %}"><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></a></div>
     {% endif %}
   </div>
 </section>
