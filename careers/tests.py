@@ -7,10 +7,10 @@ from .models import CharacterCareer
 
 
 class CareerSystemTests(TestCase):
-    def test_options_is_last_menu_section(self):
+    def test_options_is_last_menu_entry(self):
         character = Character.objects.create(name="Menu Hero", floor=5)
         sections = navigation_for(character)
-        self.assertEqual(sections[-1]["code"], "settings")
+        self.assertEqual(sections[-1]["code"], "data")
         self.assertEqual(sections[-1]["entries"][-1]["code"], "options")
 
     def test_vanguard_can_select_guardian_subclass(self):
