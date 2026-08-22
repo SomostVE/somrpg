@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="{% static 'css/v080-compact.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v081-readability.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v090-visual.css' %}?v={{ version }}">
-  <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}&profile=2">
+  <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}&profile=3">
   <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}&ui=4">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
@@ -61,8 +61,9 @@
               <small>{% if tower_floor %}{{ tower_floor.name }}{% else %}<span class="lang-en">Uncharted</span><span class="lang-fr">Inconnu</span>{% endif %}</small>
             </div>
           </div>
-          <div class="floor-chip">
+          <div class="floor-chip sidebar-summary-chip">
             <strong><span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ active_floor|stringformat:"02d" }} / {{ character.floor|stringformat:"02d" }}</strong>
+            <span class="sidebar-wallet"><span><span class="lang-en">Gold</span><span class="lang-fr">Or</span></span><b>{{ character.gold }}</b></span>
           </div>
           <div class="quick-stats" hidden aria-hidden="true"></div>
         </section>
