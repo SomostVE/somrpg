@@ -8,6 +8,7 @@ urlpatterns = [
     path("start/", views.create_character, name="create_character"),
     path("profile/", profile_views.profile, name="profile"),
     path("profile/stat/upgrade/", profile_views.upgrade_stat, name="upgrade_stat"),
+    path("profile/title/activate/", profile_views.activate_title, name="activate_title"),
     path("profile/inventory/<int:entry_id>/equip/", profile_views.toggle_profile_equip, name="toggle_profile_equip"),
     path("character/", profile_views.profile, name="character"),
     path("inventory/", profile_views.profile, name="inventory"),
