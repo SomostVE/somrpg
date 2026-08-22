@@ -29,6 +29,8 @@ class OptionsAndCharactersTests(TestCase):
         self.assertContains(response, "LANGUE")
         self.assertContains(response, "PERSONNAGES")
         self.assertContains(response, "CHANGEMENT DE CLASSE")
+        self.assertContains(response, 'data-language="fr"', html=False)
+        self.assertContains(response, 'data-language="en"', html=False)
 
     def test_local_mode_can_switch_between_three_characters(self):
         first = Character.objects.create(name="First", floor=2)
