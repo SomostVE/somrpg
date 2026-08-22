@@ -56,3 +56,9 @@ class ExpandedClassRosterTests(TestCase):
         self.assertContains(response, "Nécromancien")
         self.assertContains(response, "Samurai")
         self.assertContains(response, "Samouraï")
+
+    def test_profile_uses_bilingual_name_for_new_class(self):
+        Character.objects.create(name="Rogue Profile", archetype="rogue")
+        response = self.client.get("/profile/")
+        self.assertContains(response, "Rogue")
+        self.assertContains(response, "Roublard")
