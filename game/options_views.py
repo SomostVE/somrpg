@@ -3,10 +3,9 @@ from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_POST
 
-from careers.catalog import CLASS_INFO, PROFESSION_INFO, SUBCLASS_INFO
+from careers.catalog import CLASS_INFO, PROFESSION_INFO, SUBCLASS_INFO, class_rows
 from careers.models import CharacterCareer
 
-from .models import Character
 from .services import get_season_progress
 from .views import (
     ACTIVE_CHARACTER_SESSION_KEY,
@@ -26,35 +25,6 @@ def _career_for(character):
         return None
     career, _ = CharacterCareer.objects.get_or_create(character=character)
     return career
-
-
-def _signed(value):
-    return f"+{value}" if value > 0 else str(value)
-
-
-def _classes():
-    rows = []
-    for code, info in CLASS_INFO.items():
-        bonus_en = []
-        bonus_fr = []
-        if info["health"]:
-            bonus_en.append(f"{_signed(info['health'])} Health")
-            bonus_fr.append(f"{_signed(info['health'])} Points de vie")
-        if info["attack"]:
-            bonus_en.append(f"{_signed(info['attack'])} Attack")
-            bonus_fr.append(f"{_signed(info['attack'])} Attaque")
-        if info["defense"]:
-            bonus_en.append(f"{_signed(info['defense'])} Defense")
-            bonus_fr.append(f"{_signed(info['defense'])} Défense")
-        rows.append(
-            {
-                "code": code,
-                **info,
-                "bonus_en": " · ".join(bonus_en) or "Balanced",
-                "bonus_fr": " · ".join(bonus_fr) or "Équilibré",
-            }
-        )
-    return rows
 
 
 def _subclasses_for(character):
@@ -86,7 +56,7 @@ def options(request):
             class_change_cost=CLASS_CHANGE_COST,
             discord_redirect_uri=discord_redirect_uri(request),
             career=career,
-            class_options=_classes(),
+            class_options=class_rows(),
             subclass_options=_subclasses_for(character),
             profession_options=_professions(),
         ),
@@ -119,7 +89,7 @@ def change_class(request):
         return redirect("options")
 
     with transaction.atomic():
-        character = Character.objects.select_for_update().get(pk=current.pk)
+        character = type(current).objects.select_for_update().get(pk=current.pk)
         if character.gold < CLASS_CHANGE_COST:
             messages.error(request, f"You need {CLASS_CHANGE_COST} gold to change class.")
             return redirect("options")
