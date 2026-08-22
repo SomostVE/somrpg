@@ -14,20 +14,25 @@
   <div class="profile-section profile-character" data-profile-panel="character" {% if active_profile_tab != 'character' %}hidden{% endif %}>
     <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
     <div class="profile-identity">
-      <p class="section-code">S{{ active_floor|stringformat:"02d" }} / MAX S{{ character.floor|stringformat:"02d" }}</p>
+      <p class="section-code">
+        <span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }} · Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span>
+        <span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }} · Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span>
+      </p>
       <h1>{{ character.name }}</h1>
       <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
     </div>
-    <div class="profile-stat-grid">
-      <span><b><span class="lang-en">LEVEL</span><span class="lang-fr">NIVEAU</span></b>{{ character.level }}</span>
-      <span><b>XP</b>{{ character.xp }}/{{ character.xp_to_next_level }}</span>
-      <span><b><span class="lang-en">HP</span><span class="lang-fr">PV</span></b>{{ character.combat_max_hp }}</span>
-      <span><b><span class="lang-en">ATK</span><span class="lang-fr">ATQ</span></b>{{ character.total_attack }}</span>
-      <span><b>DEF</b>{{ character.total_defense }}</span>
-      <span><b><span class="lang-en">GOLD</span><span class="lang-fr">OR</span></b>{{ character.gold }}</span>
-      <span><b><span class="lang-en">CRAFT XP</span><span class="lang-fr">XP ART.</span></b>{{ character.crafting_xp }}</span>
-      <span><b><span class="lang-en">COLONY</span><span class="lang-fr">COLONIE</span></b>{{ colony.inhabitants }}</span>
-    </div>
+    <dl class="profile-stat-list">
+      <div class="profile-stat-row"><dt><span class="lang-en">Level</span><span class="lang-fr">Niveau</span></dt><dd>{{ character.level }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Experience</span><span class="lang-fr">Expérience</span></dt><dd>{{ character.xp }} / {{ character.xp_to_next_level }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Health points</span><span class="lang-fr">Points de vie</span></dt><dd>{{ character.combat_max_hp }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Attack</span><span class="lang-fr">Attaque</span></dt><dd>{{ character.total_attack }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Defense</span><span class="lang-fr">Défense</span></dt><dd>{{ character.total_defense }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Gold</span><span class="lang-fr">Or</span></dt><dd>{{ character.gold }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Resources</span><span class="lang-fr">Ressources</span></dt><dd>{{ character.guard_resources }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Crafting experience</span><span class="lang-fr">Expérience d'artisanat</span></dt><dd>{{ character.crafting_xp }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Colony population</span><span class="lang-fr">Population de la colonie</span></dt><dd>{{ colony.inhabitants }}</dd></div>
+      <div class="profile-stat-row"><dt><span class="lang-en">Codex completion</span><span class="lang-fr">Progression du Codex</span></dt><dd>{{ character.codex_completion|floatformat:1 }}%</dd></div>
+    </dl>
   </div>
 </section>
 
@@ -42,12 +47,16 @@
         {% if entry.equipped %}<em><span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span></em>{% endif %}
       </div>
       <strong>{{ entry.display_name }}</strong>
-      <small>×{{ entry.quantity }} · S{{ entry.item.unlock_floor }}{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · ATQ +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · DEF +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small>
+      <small>
+        ×{{ entry.quantity }} · <span class="lang-en">Unlocked in sector {{ entry.item.unlock_floor }}</span><span class="lang-fr">Débloqué au secteur {{ entry.item.unlock_floor }}</span>
+        {% if entry.item.attack_bonus or entry.affix_attack_bonus %} · <span class="lang-en">Attack</span><span class="lang-fr">Attaque</span> +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}
+        {% if entry.item.defense_bonus or entry.affix_defense_bonus %} · <span class="lang-en">Defense</span><span class="lang-fr">Défense</span> +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}
+      </small>
       <div class="profile-item-actions">
         {% if entry.item.slot != "misc" and entry.item.slot != "material" %}
         <form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>
         {% endif %}
-        <form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell</span><span class="lang-fr">Vendre</span> · {{ row.sell_value }}G</button></form>
+        <form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell for {{ row.sell_value }} gold</span><span class="lang-fr">Vendre pour {{ row.sell_value }} or</span></button></form>
       </div>
     </article>
     {% endwith %}
