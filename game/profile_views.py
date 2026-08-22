@@ -7,11 +7,12 @@ from django.views.decorators.http import require_POST
 from classic.colony import colony_bonuses, get_colony, sell_value
 
 from .models import Character, CodexDiscovery, Enemy, InventoryItem, Item, TowerFloor
+from .progression_rewards import active_title, earned_titles, reward_catalog
 from .services import add_season_progress
 from .views import context, get_character
 
 
-PROFILE_TABS = {"character", "inventory", "codex"}
+PROFILE_TABS = {"character", "abilities", "inventory", "codex"}
 LEGACY_PROFILE_TABS = {
     "character": "character",
     "inventory": "inventory",
@@ -69,6 +70,7 @@ def profile(request):
     item_entries = discoveries.filter(entry_type="item")
     floor_entries = discoveries.filter(entry_type="floor")
     colony = get_colony(character)
+    rewards = reward_catalog(character)
 
     inventory_rows = [
         {"entry": entry, "sell_value": sell_value(character, entry.item)}
@@ -92,6 +94,9 @@ def profile(request):
             inventory_rows=inventory_rows,
             equipment_slots=_equipment_slots(entries),
             stat_upgrades=stat_upgrades,
+            skills=rewards["skills"],
+            titles=rewards["titles"],
+            active_title_reward=active_title(character),
             colony=colony,
             colony_bonuses=colony_bonuses(character),
             enemy_entries=enemy_entries,
@@ -104,6 +109,23 @@ def profile(request):
             completion=character.codex_completion,
         ),
     )
+
+
+@require_POST
+def activate_title(request):
+    character = get_character(request)
+    if not character:
+        return redirect("create_character")
+
+    code = request.POST.get("title", "").strip()
+    allowed = {reward["code"] for reward in earned_titles(character)}
+    if code and code not in allowed:
+        messages.error(request, "Ce titre n'est pas encore débloqué.")
+        return redirect(f"{reverse('profile')}?tab=abilities")
+
+    character.active_title = code
+    character.save(update_fields=["active_title", "updated_at"])
+    return redirect(f"{reverse('profile')}?tab=abilities")
 
 
 @require_POST
