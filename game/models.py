@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from careers.catalog import CLASS_CHOICES, CLASS_INFO
+
 from .progression_rewards import skill_bonus, title_bonus
 
 
@@ -65,11 +67,7 @@ class Enemy(models.Model):
 
 
 class Character(models.Model):
-    ARCHETYPE_CHOICES = [
-        ("vanguard", "Vanguard"),
-        ("strider", "Strider"),
-        ("arcanist", "Arcanist"),
-    ]
+    ARCHETYPE_CHOICES = CLASS_CHOICES
 
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -108,16 +106,28 @@ class Character(models.Model):
         return self.level * 20
 
     @property
+    def class_info(self):
+        return CLASS_INFO.get(self.archetype, CLASS_INFO["vanguard"])
+
+    @property
+    def class_name_en(self):
+        return self.class_info["name_en"]
+
+    @property
+    def class_name_fr(self):
+        return self.class_info["name_fr"]
+
+    @property
     def class_attack_bonus(self):
-        return {"vanguard": 0, "strider": 2, "arcanist": 3}.get(self.archetype, 0)
+        return self.class_info["attack"]
 
     @property
     def class_defense_bonus(self):
-        return {"vanguard": 2, "strider": 0, "arcanist": 0}.get(self.archetype, 0)
+        return self.class_info["defense"]
 
     @property
     def class_hp_bonus(self):
-        return {"vanguard": 10, "strider": 0, "arcanist": -5}.get(self.archetype, 0)
+        return self.class_info["health"]
 
     @property
     def skill_hp_bonus(self):
