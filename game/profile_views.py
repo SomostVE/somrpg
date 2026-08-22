@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from classic.colony import colony_bonuses, get_colony, sell_value
@@ -9,11 +10,33 @@ from .services import add_season_progress
 from .views import context, get_character
 
 
+PROFILE_TABS = {"character", "inventory", "codex"}
+LEGACY_PROFILE_TABS = {
+    "character": "character",
+    "inventory": "inventory",
+    "codex": "codex",
+}
+
+
+def _active_profile_tab(request):
+    requested = request.GET.get("tab", "").strip().lower()
+    if requested in PROFILE_TABS:
+        return requested
+
+    route_name = getattr(getattr(request, "resolver_match", None), "url_name", "")
+    return LEGACY_PROFILE_TABS.get(route_name, "character")
+
+
+def _profile_inventory_redirect():
+    return redirect(f"{reverse('profile')}?tab=inventory")
+
+
 def profile(request):
     character = get_character(request)
     if not character:
         return redirect("create_character")
 
+    active_profile_tab = _active_profile_tab(request)
     entries = character.inventory.select_related("item").order_by("item__slot", "item__rarity", "item__name")
     discoveries = CodexDiscovery.objects.filter(character=character)
     enemy_entries = discoveries.filter(entry_type="enemy")
@@ -32,6 +55,7 @@ def profile(request):
         context(
             request,
             character,
+            active_profile_tab=active_profile_tab,
             inventory_rows=inventory_rows,
             colony=colony,
             colony_bonuses=colony_bonuses(character),
@@ -54,8 +78,8 @@ def sell_inventory_item(request, entry_id):
         return redirect("create_character")
     entry = get_object_or_404(InventoryItem.objects.select_related("item"), pk=entry_id, character=character)
     if entry.equipped:
-        messages.warning(request, "Unequip the item before selling it.")
-        return redirect("profile")
+        messages.warning(request, "Retirez l'objet avant de le vendre / Unequip the item before selling it.")
+        return _profile_inventory_redirect()
 
     value = sell_value(character, entry.item)
     if entry.quantity > 1:
@@ -68,5 +92,5 @@ def sell_inventory_item(request, entry_id):
     character.total_gold_earned += value
     character.save(update_fields=["gold", "total_gold_earned", "updated_at"])
     add_season_progress(character, commerce=value)
-    messages.success(request, f"Sold for {value} gold.")
-    return redirect("profile")
+    messages.success(request, f"Vendu pour {value} or / Sold for {value} gold.")
+    return _profile_inventory_redirect()

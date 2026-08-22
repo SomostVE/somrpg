@@ -5,13 +5,13 @@
 {% block content %}
 <section class="retro-window profile-shell">
   <div class="window-title"><span class="lang-en">PLAYER PROFILE</span><span class="lang-fr">PROFIL DU JOUEUR</span></div>
-  <div class="profile-tabs">
-    <a href="#character"><span class="lang-en">Character</span><span class="lang-fr">Personnage</span></a>
-    <a href="#inventory"><span class="lang-en">Inventory</span><span class="lang-fr">Inventaire</span></a>
-    <a href="#codex">Codex</a>
-  </div>
+  <nav class="profile-tabs" aria-label="Profile sections">
+    <a href="{% url 'profile' %}?tab=character" class="{% if active_profile_tab == 'character' %}is-active{% endif %}" {% if active_profile_tab == 'character' %}aria-current="page"{% endif %}><span class="lang-en">CHARACTER</span><span class="lang-fr">PERSONNAGE</span></a>
+    <a href="{% url 'profile' %}?tab=inventory" class="{% if active_profile_tab == 'inventory' %}is-active{% endif %}" {% if active_profile_tab == 'inventory' %}aria-current="page"{% endif %}><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></a>
+    <a href="{% url 'profile' %}?tab=codex" class="{% if active_profile_tab == 'codex' %}is-active{% endif %}" {% if active_profile_tab == 'codex' %}aria-current="page"{% endif %}>CODEX</a>
+  </nav>
 
-  <div id="character" class="profile-section profile-character">
+  <div class="profile-section profile-character" data-profile-panel="character" {% if active_profile_tab != 'character' %}hidden{% endif %}>
     <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
     <div class="profile-identity">
       <p class="section-code">S{{ active_floor|stringformat:"02d" }} / MAX S{{ character.floor|stringformat:"02d" }}</p>
@@ -31,7 +31,7 @@
   </div>
 </section>
 
-<section id="inventory" class="retro-window profile-panel">
+<section class="retro-window profile-panel" data-profile-panel="inventory" {% if active_profile_tab != 'inventory' %}hidden{% endif %}>
   <div class="window-title"><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></div>
   <div class="profile-inventory-grid">
     {% for row in inventory_rows %}
@@ -57,7 +57,7 @@
   </div>
 </section>
 
-<section id="codex" class="retro-window profile-panel">
+<section class="retro-window profile-panel" data-profile-panel="codex" {% if active_profile_tab != 'codex' %}hidden{% endif %}>
   <div class="window-title">CODEX · {{ completion|floatformat:1 }}%</div>
   <div class="profile-codex-summary">
     <span><b><span class="lang-en">SECTORS</span><span class="lang-fr">SECTEURS</span></b>{{ floor_entries|length }}/{{ floor_total }}</span>
