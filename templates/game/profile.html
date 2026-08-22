@@ -1,84 +1,89 @@
 {% extends "game/base.html" %}
-
 {% block title %}Profile - SomRPG{% endblock %}
-
 {% block content %}
 <section class="retro-window profile-shell">
   <div class="window-title"><span class="lang-en">PLAYER PROFILE</span><span class="lang-fr">PROFIL DU JOUEUR</span></div>
   <nav class="profile-tabs" aria-label="Profile sections">
     <a href="{% url 'profile' %}?tab=character" class="{% if active_profile_tab == 'character' %}is-active{% endif %}" {% if active_profile_tab == 'character' %}aria-current="page"{% endif %}><span class="lang-en">CHARACTER</span><span class="lang-fr">PERSONNAGE</span></a>
-    <a href="{% url 'profile' %}?tab=inventory" class="{% if active_profile_tab == 'inventory' %}is-active{% endif %}" {% if active_profile_tab == 'inventory' %}aria-current="page"{% endif %}><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></a>
+    <a href="{% url 'profile' %}?tab=inventory" class="{% if active_profile_tab == 'inventory' %}is-active{% endif %}" {% if active_profile_tab == 'inventory' %}aria-current="page"{% endif %}><span class="lang-en">INVENTORY DETAILS</span><span class="lang-fr">DÉTAILS DE L'INVENTAIRE</span></a>
     <a href="{% url 'profile' %}?tab=codex" class="{% if active_profile_tab == 'codex' %}is-active{% endif %}" {% if active_profile_tab == 'codex' %}aria-current="page"{% endif %}>CODEX</a>
   </nav>
 
-  <div class="profile-section profile-character" data-profile-panel="character" data-sector-code="S{{ active_floor|stringformat:'02d' }}" {% if active_profile_tab != 'character' %}hidden{% endif %}>
-    <div class="profile-portrait">{{ character.name|slice:":1"|upper }}</div>
-    <div class="profile-identity">
-      <p class="section-code">
-        <span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }} · Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span>
-        <span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }} · Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span>
-      </p>
-      <h1>{{ character.name }}</h1>
-      <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
+  <div class="profile-section profile-game-layout" data-profile-panel="character" data-sector-code="S{{ active_floor|stringformat:'02d' }}" {% if active_profile_tab != 'character' %}hidden{% endif %}>
+    <div class="profile-character-side">
+      <section class="profile-loadout-card">
+        <div class="profile-equipment-column">
+          {% for slot in equipment_slots|slice:":3" %}
+          <article class="profile-equipment-slot {% if slot.entry %}is-filled{% endif %}">
+            <small>{% if slot.slot == 'head' %}<span class="lang-en">Head</span><span class="lang-fr">Tête</span>{% elif slot.slot == 'body' %}<span class="lang-en">Body</span><span class="lang-fr">Corps</span>{% else %}<span class="lang-en">Hands</span><span class="lang-fr">Mains</span>{% endif %}</small>
+            {% if slot.entry %}<strong>{{ slot.entry.display_name }}</strong>{% else %}<span class="empty-slot">—</span>{% endif %}
+          </article>
+          {% endfor %}
+        </div>
+        <div class="profile-hero-center">
+          <div class="profile-portrait profile-portrait-large">{{ character.name|slice:":1"|upper }}</div>
+          <h1>{{ character.name }}</h1>
+          <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
+          <span class="profile-level"><span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ character.level }}</span>
+          <small><span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }}</span></small>
+          <small><span class="lang-en">Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span></small>
+        </div>
+        <div class="profile-equipment-column">
+          {% for slot in equipment_slots|slice:"3:" %}
+          <article class="profile-equipment-slot {% if slot.entry %}is-filled{% endif %}">
+            <small>{% if slot.slot == 'weapon' %}<span class="lang-en">Weapon</span><span class="lang-fr">Arme</span>{% elif slot.slot == 'feet' %}<span class="lang-en">Feet</span><span class="lang-fr">Pieds</span>{% else %}<span class="lang-en">Accessory</span><span class="lang-fr">Accessoire</span>{% endif %}</small>
+            {% if slot.entry %}<strong>{{ slot.entry.display_name }}</strong>{% else %}<span class="empty-slot">—</span>{% endif %}
+          </article>
+          {% endfor %}
+        </div>
+      </section>
+
+      <section class="profile-training-card">
+        <div class="profile-card-heading"><strong><span class="lang-en">ATTRIBUTES</span><span class="lang-fr">CARACTÉRISTIQUES</span></strong><span><span class="lang-en">Gold available</span><span class="lang-fr">Or disponible</span> : <b>{{ character.gold }}</b></span></div>
+        <div class="profile-training-list">
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Health points</span><span class="lang-fr">Points de vie</span></span><strong>{{ character.combat_max_hp }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.max_hp }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="health"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.health.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.health.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Attack</span><span class="lang-fr">Attaque</span></span><strong>{{ character.total_attack }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.attack }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="attack"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.attack.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.attack.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Defense</span><span class="lang-fr">Défense</span></span><strong>{{ character.total_defense }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.defense }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="defense"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.defense.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.defense.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+        </div>
+        <dl class="profile-secondary-stats">
+          <div><dt><span class="lang-en">Experience</span><span class="lang-fr">Expérience</span></dt><dd>{{ character.xp }} / {{ character.xp_to_next_level }}</dd></div>
+          <div><dt><span class="lang-en">Resources</span><span class="lang-fr">Ressources</span></dt><dd>{{ character.guard_resources }}</dd></div>
+          <div><dt><span class="lang-en">Crafting experience</span><span class="lang-fr">Expérience d'artisanat</span></dt><dd>{{ character.crafting_xp }}</dd></div>
+          <div><dt><span class="lang-en">Colony population</span><span class="lang-fr">Population de la colonie</span></dt><dd>{{ colony.inhabitants }}</dd></div>
+          <div><dt><span class="lang-en">Codex completion</span><span class="lang-fr">Progression du Codex</span></dt><dd>{{ character.codex_completion|floatformat:1 }}%</dd></div>
+        </dl>
+      </section>
     </div>
-    <dl class="profile-stat-list">
-      <div class="profile-stat-row"><dt><span class="lang-en">Level</span><span class="lang-fr">Niveau</span></dt><dd>{{ character.level }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Experience</span><span class="lang-fr">Expérience</span></dt><dd>{{ character.xp }} / {{ character.xp_to_next_level }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Health points</span><span class="lang-fr">Points de vie</span></dt><dd>{{ character.combat_max_hp }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Attack</span><span class="lang-fr">Attaque</span></dt><dd>{{ character.total_attack }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Defense</span><span class="lang-fr">Défense</span></dt><dd>{{ character.total_defense }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Gold</span><span class="lang-fr">Or</span></dt><dd>{{ character.gold }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Resources</span><span class="lang-fr">Ressources</span></dt><dd>{{ character.guard_resources }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Crafting experience</span><span class="lang-fr">Expérience d'artisanat</span></dt><dd>{{ character.crafting_xp }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Colony population</span><span class="lang-fr">Population de la colonie</span></dt><dd>{{ colony.inhabitants }}</dd></div>
-      <div class="profile-stat-row"><dt><span class="lang-en">Codex completion</span><span class="lang-fr">Progression du Codex</span></dt><dd>{{ character.codex_completion|floatformat:1 }}%</dd></div>
-    </dl>
+
+    <aside class="profile-backpack-panel">
+      <div class="profile-card-heading"><strong><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></strong><span>{{ inventory_rows|length }} <span class="lang-en">item types</span><span class="lang-fr">types d'objets</span></span></div>
+      <div class="profile-backpack-grid">
+        {% for row in inventory_rows %}{% with entry=row.entry %}
+        <article class="profile-backpack-item rarity-{{ entry.item.rarity }} {% if entry.equipped %}is-equipped{% endif %}">
+          <div class="profile-item-head"><span class="gear-slot"><span class="lang-en">{{ entry.item.get_slot_display }}</span><span class="lang-fr">{% if entry.item.slot == 'weapon' %}Arme{% elif entry.item.slot == 'head' %}Tête{% elif entry.item.slot == 'body' %}Corps{% elif entry.item.slot == 'hands' %}Mains{% elif entry.item.slot == 'feet' %}Pieds{% elif entry.item.slot == 'accessory' %}Accessoire{% elif entry.item.slot == 'material' %}Matériau{% else %}Divers{% endif %}</span></span><b>×{{ entry.quantity }}</b></div>
+          <strong>{{ entry.display_name }}</strong>
+          <small><span class="lang-en">Sector {{ entry.item.unlock_floor }}</span><span class="lang-fr">Secteur {{ entry.item.unlock_floor }}</span>{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · <span class="lang-en">Attack</span><span class="lang-fr">Attaque</span> +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · <span class="lang-en">Defense</span><span class="lang-fr">Défense</span> +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small>
+          <div class="profile-item-actions">{% if entry.item.slot != "misc" and entry.item.slot != "material" %}<form method="post" action="{% url 'toggle_profile_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>{% endif %}<form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<input type="hidden" name="return_to" value="profile"><button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell</span><span class="lang-fr">Vendre</span> · {{ row.sell_value }} <span class="lang-en">gold</span><span class="lang-fr">or</span></button></form></div>
+        </article>
+        {% endwith %}{% empty %}<p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>{% endfor %}
+      </div>
+    </aside>
   </div>
 </section>
 
 <section class="retro-window profile-panel" data-profile-panel="inventory" {% if active_profile_tab != 'inventory' %}hidden{% endif %}>
-  <div class="window-title"><span class="lang-en">INVENTORY</span><span class="lang-fr">INVENTAIRE</span></div>
+  <div class="window-title"><span class="lang-en">INVENTORY DETAILS</span><span class="lang-fr">DÉTAILS DE L'INVENTAIRE</span></div>
   <div class="profile-inventory-grid">
-    {% for row in inventory_rows %}
-    {% with entry=row.entry %}
-    <article class="profile-item rarity-{{ entry.item.rarity }}">
-      <div class="profile-item-head">
-        <span class="gear-slot"><span class="lang-en">{{ entry.item.get_slot_display }}</span><span class="lang-fr">{% if entry.item.slot == 'weapon' %}Arme{% elif entry.item.slot == 'head' %}Tête{% elif entry.item.slot == 'body' %}Corps{% elif entry.item.slot == 'hands' %}Mains{% elif entry.item.slot == 'feet' %}Pieds{% elif entry.item.slot == 'accessory' %}Accessoire{% elif entry.item.slot == 'material' %}Matériau{% else %}Divers{% endif %}</span></span>
-        {% if entry.equipped %}<em><span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span></em>{% endif %}
-      </div>
-      <strong>{{ entry.display_name }}</strong>
-      <small>
-        ×{{ entry.quantity }} · <span class="lang-en">Unlocked in sector {{ entry.item.unlock_floor }}</span><span class="lang-fr">Débloqué au secteur {{ entry.item.unlock_floor }}</span>
-        {% if entry.item.attack_bonus or entry.affix_attack_bonus %} · <span class="lang-en">Attack</span><span class="lang-fr">Attaque</span> +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}
-        {% if entry.item.defense_bonus or entry.affix_defense_bonus %} · <span class="lang-en">Defense</span><span class="lang-fr">Défense</span> +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}
-      </small>
-      <div class="profile-item-actions">
-        {% if entry.item.slot != "misc" and entry.item.slot != "material" %}
-        <form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>
-        {% endif %}
-        <form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell for {{ row.sell_value }} gold</span><span class="lang-fr">Vendre pour {{ row.sell_value }} or</span></button></form>
-      </div>
-    </article>
-    {% endwith %}
-    {% empty %}
-    <p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>
-    {% endfor %}
+    {% for row in inventory_rows %}{% with entry=row.entry %}
+    <article class="profile-item rarity-{{ entry.item.rarity }}"><div class="profile-item-head"><span class="gear-slot"><span class="lang-en">{{ entry.item.get_slot_display }}</span><span class="lang-fr">{% if entry.item.slot == 'weapon' %}Arme{% elif entry.item.slot == 'head' %}Tête{% elif entry.item.slot == 'body' %}Corps{% elif entry.item.slot == 'hands' %}Mains{% elif entry.item.slot == 'feet' %}Pieds{% elif entry.item.slot == 'accessory' %}Accessoire{% elif entry.item.slot == 'material' %}Matériau{% else %}Divers{% endif %}</span></span>{% if entry.equipped %}<em><span class="lang-en">EQUIPPED</span><span class="lang-fr">ÉQUIPÉ</span></em>{% endif %}</div><strong>{{ entry.display_name }}</strong><small>×{{ entry.quantity }} · <span class="lang-en">Unlocked in sector {{ entry.item.unlock_floor }}</span><span class="lang-fr">Débloqué au secteur {{ entry.item.unlock_floor }}</span>{% if entry.item.attack_bonus or entry.affix_attack_bonus %} · <span class="lang-en">Attack</span><span class="lang-fr">Attaque</span> +{{ entry.item.attack_bonus|add:entry.affix_attack_bonus }}{% endif %}{% if entry.item.defense_bonus or entry.affix_defense_bonus %} · <span class="lang-en">Defense</span><span class="lang-fr">Défense</span> +{{ entry.item.defense_bonus|add:entry.affix_defense_bonus }}{% endif %}</small><div class="profile-item-actions">{% if entry.item.slot != "misc" and entry.item.slot != "material" %}<form method="post" action="{% url 'toggle_equip' entry.id %}">{% csrf_token %}<button class="button" type="submit">{% if entry.equipped %}<span class="lang-en">Remove</span><span class="lang-fr">Retirer</span>{% else %}<span class="lang-en">Equip</span><span class="lang-fr">Équiper</span>{% endif %}</button></form>{% endif %}<form method="post" action="{% url 'sell_inventory_item' entry.id %}">{% csrf_token %}<button class="button" type="submit" {% if entry.equipped %}disabled{% endif %}><span class="lang-en">Sell for {{ row.sell_value }} gold</span><span class="lang-fr">Vendre pour {{ row.sell_value }} or</span></button></form></div></article>
+    {% endwith %}{% empty %}<p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>{% endfor %}
   </div>
 </section>
 
 <section class="retro-window profile-panel" data-profile-panel="codex" {% if active_profile_tab != 'codex' %}hidden{% endif %}>
   <div class="window-title">CODEX · {{ completion|floatformat:1 }}%</div>
-  <div class="profile-codex-summary">
-    <span><b><span class="lang-en">SECTORS</span><span class="lang-fr">SECTEURS</span></b>{{ floor_entries|length }}/{{ floor_total }}</span>
-    <span><b><span class="lang-en">ENEMIES</span><span class="lang-fr">ENNEMIS</span></b>{{ enemy_entries|length }}/{{ enemy_total }}</span>
-    <span><b><span class="lang-en">ITEMS</span><span class="lang-fr">OBJETS</span></b>{{ item_entries|length }}/{{ item_total }}</span>
-    <span><b><span class="lang-en">FOUND</span><span class="lang-fr">TROUVÉ</span></b>{{ discovered_entries }}</span>
-  </div>
+  <div class="profile-codex-summary"><span><b><span class="lang-en">SECTORS</span><span class="lang-fr">SECTEURS</span></b>{{ floor_entries|length }}/{{ floor_total }}</span><span><b><span class="lang-en">ENEMIES</span><span class="lang-fr">ENNEMIS</span></b>{{ enemy_entries|length }}/{{ enemy_total }}</span><span><b><span class="lang-en">ITEMS</span><span class="lang-fr">OBJETS</span></b>{{ item_entries|length }}/{{ item_total }}</span><span><b><span class="lang-en">FOUND</span><span class="lang-fr">TROUVÉ</span></b>{{ discovered_entries }}</span></div>
   <div class="codex-meter"><div class="codex-meter-fill" style="width: {{ completion|floatformat:2 }}%"></div></div>
-  <div class="profile-codex-columns">
-    <div><h3><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></h3>{% for entry in floor_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
-    <div><h3><span class="lang-en">Bestiary</span><span class="lang-fr">Bestiaire</span></h3>{% for entry in enemy_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
-    <div><h3><span class="lang-en">Items</span><span class="lang-fr">Objets</span></h3>{% for entry in item_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div>
-  </div>
+  <div class="profile-codex-columns"><div><h3><span class="lang-en">Sectors</span><span class="lang-fr">Secteurs</span></h3>{% for entry in floor_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div><div><h3><span class="lang-en">Bestiary</span><span class="lang-fr">Bestiaire</span></h3>{% for entry in enemy_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div><div><h3><span class="lang-en">Items</span><span class="lang-fr">Objets</span></h3>{% for entry in item_entries %}<span>{{ entry.label }}</span>{% empty %}<span>—</span>{% endfor %}</div></div>
 </section>
 {% endblock %}
