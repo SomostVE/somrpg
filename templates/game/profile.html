@@ -24,7 +24,7 @@
         <div class="profile-hero-center">
           <div class="profile-portrait profile-portrait-large">{{ character.name|slice:":1"|upper }}</div>
           <h1>{{ character.name }}</h1>
-          <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
+          <strong><span class="lang-en">{{ character.class_name_en }}</span><span class="lang-fr">{{ character.class_name_fr }}</span></strong>
           {% if active_title_reward %}<span class="profile-active-title"><span class="lang-en">{{ active_title_reward.name_en }}</span><span class="lang-fr">{{ active_title_reward.name_fr }}</span></span>{% endif %}
           <span class="profile-level"><span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ character.level }}</span>
           <small><span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }}</span></small>

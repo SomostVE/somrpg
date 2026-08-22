@@ -247,8 +247,8 @@ class BilingualLayoutTests(TestCase):
         self.assertContains(response, "css/v0102-quests.css")
         self.assertContains(response, "css/v013-options.css")
         self.assertContains(response, "classic/classic.css")
-        self.assertContains(response, "?v=0.13.0")
-        self.assertContains(response, "VER <span id=\"version-label\">0.13.0</span>", html=False)
+        self.assertContains(response, "?v=0.15.0")
+        self.assertContains(response, "VER <span id=\"version-label\">0.15.0</span>", html=False)
         self.assertContains(response, "menu-entry-profile")
         self.assertContains(response, "menu-entry-options")
         self.assertContains(response, "menu-entry-quests")
@@ -303,7 +303,7 @@ class LiveApiTests(TestCase):
     def test_version_endpoint_is_not_cached(self):
         response = self.client.get("/api/version/")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.json()["version"], "0.13.0")
+        self.assertEqual(response.json()["version"], "0.15.0")
         self.assertEqual(response.json()["reset_hour"], 22)
         self.assertIn("no-store", response["Cache-Control"])
 
