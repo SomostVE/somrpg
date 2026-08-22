@@ -32,7 +32,12 @@
           <div class="character-slot-mark">{{ entry.name|slice:":1"|upper }}</div>
           <div class="character-slot-copy">
             <strong>{{ entry.name }}</strong>
-            <small><span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ entry.level }} · <span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ entry.floor|stringformat:"02d" }} · {{ entry.get_archetype_display }}</small>
+            <small>
+              <span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ entry.level }} ·
+              <span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ entry.floor|stringformat:"02d" }} ·
+              <span class="lang-en">{{ entry.get_archetype_display }}</span>
+              <span class="lang-fr">{% if entry.archetype == 'vanguard' %}Avant-garde{% elif entry.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span>
+            </small>
           </div>
           {% if character and entry.id == character.id %}<span class="active-character-label"><span class="lang-en">ACTIVE</span><span class="lang-fr">ACTIF</span></span>{% else %}<form method="post" action="{% url 'select_character' entry.id %}">{% csrf_token %}<button class="button" type="submit"><span class="lang-en">Use</span><span class="lang-fr">Utiliser</span></button></form>{% endif %}
         </article>
@@ -44,11 +49,47 @@
     {% if character %}
     <section class="option-card option-card-wide">
       <div class="option-card-title"><span class="lang-en">CLASS CHANGE</span><span class="lang-fr">CHANGEMENT DE CLASSE</span></div>
-      <div class="class-change-summary"><span><span class="lang-en">Current class</span><span class="lang-fr">Classe actuelle</span> : <strong>{{ character.get_archetype_display }}</strong></span><span><span class="lang-en">Cost</span><span class="lang-fr">Coût</span> : <strong>{{ class_change_cost }} Or</strong></span><span><span class="lang-en">Gold</span><span class="lang-fr">Or</span> : <strong>{{ character.gold }}</strong></span></div>
+      <div class="class-change-summary">
+        <span><span class="lang-en">Current class</span><span class="lang-fr">Classe actuelle</span> : <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong></span>
+        <span><span class="lang-en">Cost</span><span class="lang-fr">Coût</span> : <strong>{{ class_change_cost }} Or</strong></span>
+        <span><span class="lang-en">Gold</span><span class="lang-fr">Or</span> : <strong>{{ character.gold }}</strong></span>
+      </div>
       <div class="class-choice-grid">
-        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="vanguard"><button class="button class-choice" type="submit" {% if character.archetype == 'vanguard' or character.gold < class_change_cost %}disabled{% endif %}><strong>Vanguard</strong><small><span class="lang-en">+10 HP · +2 Defense</span><span class="lang-fr">+10 PV · +2 Défense</span></small></button></form>
-        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="strider"><button class="button class-choice" type="submit" {% if character.archetype == 'strider' or character.gold < class_change_cost %}disabled{% endif %}><strong>Strider</strong><small><span class="lang-en">+2 Attack</span><span class="lang-fr">+2 Attaque</span></small></button></form>
-        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="arcanist"><button class="button class-choice" type="submit" {% if character.archetype == 'arcanist' or character.gold < class_change_cost %}disabled{% endif %}><strong>Arcanist</strong><small><span class="lang-en">+3 Attack · -5 HP</span><span class="lang-fr">+3 Attaque · -5 PV</span></small></button></form>
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="vanguard"><button class="button class-choice" type="submit" {% if character.archetype == 'vanguard' or character.gold < class_change_cost %}disabled{% endif %}><strong><span class="lang-en">Vanguard</span><span class="lang-fr">Avant-garde</span></strong><small><span class="lang-en">+10 HP · +2 Defense</span><span class="lang-fr">+10 PV · +2 Défense</span></small></button></form>
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="strider"><button class="button class-choice" type="submit" {% if character.archetype == 'strider' or character.gold < class_change_cost %}disabled{% endif %}><strong><span class="lang-en">Strider</span><span class="lang-fr">Éclaireur</span></strong><small><span class="lang-en">+2 Attack</span><span class="lang-fr">+2 Attaque</span></small></button></form>
+        <form method="post" action="{% url 'change_class' %}">{% csrf_token %}<input type="hidden" name="archetype" value="arcanist"><button class="button class-choice" type="submit" {% if character.archetype == 'arcanist' or character.gold < class_change_cost %}disabled{% endif %}><strong><span class="lang-en">Arcanist</span><span class="lang-fr">Arcaniste</span></strong><small><span class="lang-en">+3 Attack · -5 HP</span><span class="lang-fr">+3 Attaque · -5 PV</span></small></button></form>
+      </div>
+    </section>
+
+    <section class="option-card option-card-wide">
+      <div class="option-card-title"><span class="lang-en">SUBCLASS</span><span class="lang-fr">SOUS-CLASSE</span></div>
+      <p><span class="lang-en">Choose a specialization linked to the current class. Changing class clears an incompatible subclass.</span><span class="lang-fr">Choisissez une spécialisation liée à la classe actuelle. Un changement de classe retire une sous-classe incompatible.</span></p>
+      <div class="class-choice-grid">
+        {% for entry in subclass_options %}
+        <form method="post" action="{% url 'select_subclass' %}">
+          {% csrf_token %}<input type="hidden" name="subclass" value="{{ entry.code }}">
+          <button class="button class-choice" type="submit" {% if career.subclass == entry.code %}disabled{% endif %}>
+            <strong><span class="lang-en">{{ entry.name_en }}</span><span class="lang-fr">{{ entry.name_fr }}</span></strong>
+            <small><span class="lang-en">{{ entry.description_en }}</span><span class="lang-fr">{{ entry.description_fr }}</span></small>
+          </button>
+        </form>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="option-card option-card-wide">
+      <div class="option-card-title"><span class="lang-en">PROFESSION</span><span class="lang-fr">MÉTIER</span></div>
+      <p><span class="lang-en">Professions are independent from combat classes and will support crafting, commerce and preparation systems.</span><span class="lang-fr">Les métiers sont indépendants des classes de combat et serviront aux systèmes d'artisanat, de commerce et de préparation.</span></p>
+      <div class="class-choice-grid">
+        {% for entry in profession_options %}
+        <form method="post" action="{% url 'select_profession' %}">
+          {% csrf_token %}<input type="hidden" name="profession" value="{{ entry.code }}">
+          <button class="button class-choice" type="submit" {% if career.profession == entry.code %}disabled{% endif %}>
+            <strong><span class="lang-en">{{ entry.name_en }}</span><span class="lang-fr">{{ entry.name_fr }}</span></strong>
+            <small><span class="lang-en">{{ entry.description_en }}</span><span class="lang-fr">{{ entry.description_fr }}</span></small>
+          </button>
+        </form>
+        {% endfor %}
       </div>
     </section>
     {% endif %}
