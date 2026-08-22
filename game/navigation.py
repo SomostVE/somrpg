@@ -15,7 +15,6 @@ class NavigationEntry:
 
 NAVIGATION = [
     NavigationEntry("profile", "Profile", "Profil", "profile", 1, "player"),
-    NavigationEntry("options", "Options", "Options", "options", 1, "player"),
     NavigationEntry("camp", "Camp", "Camp", "home", 1, "core"),
     NavigationEntry("tower", "Tower", "Tour", "tower_map", 1, "core"),
     NavigationEntry("explore", "Explore", "Donjon", "explore", 1, "core"),
@@ -26,6 +25,7 @@ NAVIGATION = [
     NavigationEntry("colony", "Colony", "Colonie", "colony", 2, "systems"),
     NavigationEntry("community", "Community", "Communauté", "community", 1, "network"),
     NavigationEntry("index", "Archives", "Archives", "content_index", 1, "data"),
+    NavigationEntry("options", "Options", "Options", "options", 1, "settings"),
 ]
 
 
@@ -35,13 +35,14 @@ SECTION_LABELS = {
     "systems": ("SERVICES", "SERVICES"),
     "network": ("NETWORK", "RÉSEAU"),
     "data": ("ARCHIVES", "ARCHIVES"),
+    "settings": ("SYSTEM", "SYSTÈME"),
 }
 
 
 def navigation_for(character):
     floor = character.floor if character else 1
     sections = []
-    for section_code in ("player", "core", "systems", "network", "data"):
+    for section_code in ("player", "core", "systems", "network", "data", "settings"):
         entries = []
         for entry in NAVIGATION:
             if entry.section != section_code or entry.unlock_floor > floor:
