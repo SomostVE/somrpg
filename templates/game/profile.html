@@ -5,6 +5,7 @@
   <div class="window-title"><span class="lang-en">PLAYER PROFILE</span><span class="lang-fr">PROFIL DU JOUEUR</span></div>
   <nav class="profile-tabs" aria-label="Profile sections">
     <a href="{% url 'profile' %}?tab=character" class="{% if active_profile_tab == 'character' %}is-active{% endif %}" {% if active_profile_tab == 'character' %}aria-current="page"{% endif %}><span class="lang-en">CHARACTER</span><span class="lang-fr">PERSONNAGE</span></a>
+    <a href="{% url 'profile' %}?tab=abilities" class="{% if active_profile_tab == 'abilities' %}is-active{% endif %}" {% if active_profile_tab == 'abilities' %}aria-current="page"{% endif %}><span class="lang-en">SKILLS & TITLES</span><span class="lang-fr">COMPÉTENCES & TITRES</span></a>
     <a href="{% url 'profile' %}?tab=inventory" class="{% if active_profile_tab == 'inventory' %}is-active{% endif %}" {% if active_profile_tab == 'inventory' %}aria-current="page"{% endif %}><span class="lang-en">INVENTORY DETAILS</span><span class="lang-fr">DÉTAILS DE L'INVENTAIRE</span></a>
     <a href="{% url 'profile' %}?tab=codex" class="{% if active_profile_tab == 'codex' %}is-active{% endif %}" {% if active_profile_tab == 'codex' %}aria-current="page"{% endif %}>CODEX</a>
   </nav>
@@ -24,6 +25,7 @@
           <div class="profile-portrait profile-portrait-large">{{ character.name|slice:":1"|upper }}</div>
           <h1>{{ character.name }}</h1>
           <strong><span class="lang-en">{{ character.get_archetype_display }}</span><span class="lang-fr">{% if character.archetype == 'vanguard' %}Avant-garde{% elif character.archetype == 'strider' %}Éclaireur{% else %}Arcaniste{% endif %}</span></strong>
+          {% if active_title_reward %}<span class="profile-active-title"><span class="lang-en">{{ active_title_reward.name_en }}</span><span class="lang-fr">{{ active_title_reward.name_fr }}</span></span>{% endif %}
           <span class="profile-level"><span class="lang-en">Level</span><span class="lang-fr">Niveau</span> {{ character.level }}</span>
           <small><span class="lang-en">Current sector {{ active_floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur actuel {{ active_floor|stringformat:"02d" }}</span></small>
           <small><span class="lang-en">Highest unlocked sector {{ character.floor|stringformat:"02d" }}</span><span class="lang-fr">Secteur maximal débloqué {{ character.floor|stringformat:"02d" }}</span></small>
@@ -41,9 +43,9 @@
       <section class="profile-training-card">
         <div class="profile-card-heading"><strong><span class="lang-en">ATTRIBUTES</span><span class="lang-fr">CARACTÉRISTIQUES</span></strong><span><span class="lang-en">Gold available</span><span class="lang-fr">Or disponible</span> : <b>{{ character.gold }}</b></span></div>
         <div class="profile-training-list">
-          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Health points</span><span class="lang-fr">Points de vie</span></span><strong>{{ character.combat_max_hp }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.max_hp }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="health"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.health.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.health.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
-          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Attack</span><span class="lang-fr">Attaque</span></span><strong>{{ character.total_attack }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.attack }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="attack"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.attack.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.attack.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
-          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Defense</span><span class="lang-fr">Défense</span></span><strong>{{ character.total_defense }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.defense }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="defense"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.defense.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.defense.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Health points</span><span class="lang-fr">Points de vie</span></span><strong>{{ character.combat_max_hp }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.max_hp }} · <span class="lang-en">Skills</span><span class="lang-fr">Compétences</span> +{{ character.skill_hp_bonus }} · <span class="lang-en">Title</span><span class="lang-fr">Titre</span> +{{ character.title_hp_bonus }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="health"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.health.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.health.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Attack</span><span class="lang-fr">Attaque</span></span><strong>{{ character.total_attack }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.attack }} · <span class="lang-en">Skills</span><span class="lang-fr">Compétences</span> +{{ character.skill_attack_bonus }} · <span class="lang-en">Title</span><span class="lang-fr">Titre</span> +{{ character.title_attack_bonus }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="attack"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.attack.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.attack.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
+          <article class="profile-training-row"><div class="profile-training-copy"><span><span class="lang-en">Defense</span><span class="lang-fr">Défense</span></span><strong>{{ character.total_defense }}</strong><small><span class="lang-en">Permanent value</span><span class="lang-fr">Valeur permanente</span> : {{ character.defense }} · <span class="lang-en">Skills</span><span class="lang-fr">Compétences</span> +{{ character.skill_defense_bonus }} · <span class="lang-en">Title</span><span class="lang-fr">Titre</span> +{{ character.title_defense_bonus }}</small></div><form method="post" action="{% url 'upgrade_stat' %}" class="profile-upgrade-form">{% csrf_token %}<input type="hidden" name="stat" value="defense"><button type="submit" class="profile-upgrade-button" {% if not stat_upgrades.defense.affordable %}disabled{% endif %}>+</button><small>{{ stat_upgrades.defense.cost }} <span class="lang-en">gold</span><span class="lang-fr">or</span></small></form></article>
         </div>
         <dl class="profile-secondary-stats">
           <div><dt><span class="lang-en">Experience</span><span class="lang-fr">Expérience</span></dt><dd>{{ character.xp }} / {{ character.xp_to_next_level }}</dd></div>
@@ -68,6 +70,43 @@
         {% endwith %}{% empty %}<p class="empty-text"><span class="lang-en">Inventory empty.</span><span class="lang-fr">Inventaire vide.</span></p>{% endfor %}
       </div>
     </aside>
+  </div>
+</section>
+
+<section class="retro-window profile-panel rewards-panel" data-profile-panel="abilities" {% if active_profile_tab != 'abilities' %}hidden{% endif %}>
+  <div class="window-title"><span class="lang-en">SKILLS & TITLES</span><span class="lang-fr">COMPÉTENCES & TITRES</span></div>
+  <div class="rewards-columns">
+    <section class="reward-group">
+      <div class="profile-card-heading"><strong><span class="lang-en">PASSIVE SKILLS</span><span class="lang-fr">COMPÉTENCES PASSIVES</span></strong><span><span class="lang-en">All earned skills are active</span><span class="lang-fr">Toutes les compétences obtenues sont actives</span></span></div>
+      <div class="reward-list">
+        {% for reward in skills %}
+        <article class="reward-card {% if reward.earned %}is-earned{% else %}is-locked{% endif %}">
+          <div class="reward-head"><strong><span class="lang-en">{{ reward.name_en }}</span><span class="lang-fr">{{ reward.name_fr }}</span></strong><span>{% if reward.earned %}<span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉE</span>{% else %}<span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉE</span>{% endif %}</span></div>
+          <p><span class="lang-en">{{ reward.description_en }}</span><span class="lang-fr">{{ reward.description_fr }}</span></p>
+          <strong class="reward-bonus"><span class="lang-en">{{ reward.bonus_en }}</span><span class="lang-fr">{{ reward.bonus_fr }}</span></strong>
+          <small><span class="lang-en">{{ reward.objective_en }}</span><span class="lang-fr">{{ reward.objective_fr }}</span> · {{ reward.current }} / {{ reward.target }}</small>
+          <div class="reward-progress"><span style="width:{{ reward.progress }}%"></span></div>
+        </article>
+        {% endfor %}
+      </div>
+    </section>
+
+    <section class="reward-group">
+      <div class="profile-card-heading"><strong><span class="lang-en">TITLES</span><span class="lang-fr">TITRES</span></strong><span><span class="lang-en">Only the selected title grants its bonus</span><span class="lang-fr">Seul le titre sélectionné accorde son bonus</span></span></div>
+      <form method="post" action="{% url 'activate_title' %}" class="clear-title-form">{% csrf_token %}<input type="hidden" name="title" value=""><button class="button" type="submit"><span class="lang-en">No active title</span><span class="lang-fr">Aucun titre actif</span></button></form>
+      <div class="reward-list">
+        {% for reward in titles %}
+        <article class="reward-card {% if reward.earned %}is-earned{% else %}is-locked{% endif %} {% if character.active_title == reward.code %}is-active-title{% endif %}">
+          <div class="reward-head"><strong><span class="lang-en">{{ reward.name_en }}</span><span class="lang-fr">{{ reward.name_fr }}</span></strong><span>{% if character.active_title == reward.code %}<span class="lang-en">ACTIVE</span><span class="lang-fr">ACTIF</span>{% elif reward.earned %}<span class="lang-en">UNLOCKED</span><span class="lang-fr">DÉBLOQUÉ</span>{% else %}<span class="lang-en">LOCKED</span><span class="lang-fr">VERROUILLÉ</span>{% endif %}</span></div>
+          <p><span class="lang-en">{{ reward.description_en }}</span><span class="lang-fr">{{ reward.description_fr }}</span></p>
+          <strong class="reward-bonus"><span class="lang-en">{{ reward.bonus_en }}</span><span class="lang-fr">{{ reward.bonus_fr }}</span></strong>
+          <small><span class="lang-en">{{ reward.objective_en }}</span><span class="lang-fr">{{ reward.objective_fr }}</span> · {{ reward.current }} / {{ reward.target }}</small>
+          <div class="reward-progress"><span style="width:{{ reward.progress }}%"></span></div>
+          {% if reward.earned and character.active_title != reward.code %}<form method="post" action="{% url 'activate_title' %}">{% csrf_token %}<input type="hidden" name="title" value="{{ reward.code }}"><button class="button primary" type="submit"><span class="lang-en">Use title</span><span class="lang-fr">Utiliser le titre</span></button></form>{% endif %}
+        </article>
+        {% endfor %}
+      </div>
+    </section>
   </div>
 </section>
 
