@@ -17,9 +17,11 @@ class ProfileTrainingTests(TestCase):
         self.assertContains(response, "profile-backpack-panel")
         self.assertContains(response, "CARACTÉRISTIQUES")
         self.assertContains(response, "Points de vie")
-        self.assertContains(response, "Or disponible")
+        self.assertContains(response, "sidebar-wallet")
+        self.assertNotContains(response, "Or disponible")
         self.assertContains(response, "Training Blade")
         self.assertContains(response, 'action="/profile/stat/upgrade/"', html=False)
+        self.assertContains(response, "data-upgrade-preview")
 
     def test_attack_upgrade_spends_gold_and_increases_permanent_attack(self):
         character = Character.objects.create(name="Trainer", gold=100, attack=5)
