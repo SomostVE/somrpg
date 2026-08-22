@@ -75,6 +75,35 @@ class InteractionAuditTests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.context["active_profile_tab"], tab)
 
+    def test_sidebar_keeps_identity_but_removes_character_stats(self):
+        response = self.client.get("/")
+        self.assertContains(response, "identity-only-player-card")
+        self.assertContains(response, "Secteur actuel")
+        self.assertContains(response, "Secteur maximal débloqué")
+        self.assertNotContains(response, "xp-mini")
+        self.assertNotContains(response, "xp-caption")
+
+    def test_character_profile_uses_full_readable_stat_labels(self):
+        response = self.client.get("/profile/?tab=character")
+        for label in (
+            "Niveau",
+            "Expérience",
+            "Points de vie",
+            "Attaque",
+            "Défense",
+            "Or",
+            "Ressources",
+            "Expérience d'artisanat",
+            "Population de la colonie",
+            "Progression du Codex",
+        ):
+            with self.subTest(label=label):
+                self.assertContains(response, label)
+        html = response.content.decode()
+        for abbreviation in (">PV<", ">ATQ<", ">DEF<", ">RES<", ">ART.<"):
+            with self.subTest(abbreviation=abbreviation):
+                self.assertNotIn(abbreviation, html)
+
     def test_main_screens_have_no_inert_links_or_unbound_buttons(self):
         urls = [
             "/",
