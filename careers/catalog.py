@@ -96,3 +96,33 @@ PROFESSION_INFO = {
     "merchant": {"name_en": "Merchant", "name_fr": "Marchand", "description_en": "Trading, prices and colony commerce.", "description_fr": "Commerce, prix et économie de la colonie."},
     "cook": {"name_en": "Cook", "name_fr": "Cuisinier", "description_en": "Meals and preparation bonuses.", "description_fr": "Repas et bonus de préparation."},
 }
+
+
+def _signed(value):
+    return f"+{value}" if value > 0 else str(value)
+
+
+def class_rows():
+    """Return one bilingual presentation row per class from the canonical catalog."""
+    rows = []
+    for code, info in CLASS_INFO.items():
+        bonus_en = []
+        bonus_fr = []
+        if info["health"]:
+            bonus_en.append(f"{_signed(info['health'])} Health points")
+            bonus_fr.append(f"{_signed(info['health'])} Points de vie")
+        if info["attack"]:
+            bonus_en.append(f"{_signed(info['attack'])} Attack")
+            bonus_fr.append(f"{_signed(info['attack'])} Attaque")
+        if info["defense"]:
+            bonus_en.append(f"{_signed(info['defense'])} Defense")
+            bonus_fr.append(f"{_signed(info['defense'])} Défense")
+        rows.append(
+            {
+                "code": code,
+                **info,
+                "bonus_en": " · ".join(bonus_en) or "Balanced",
+                "bonus_fr": " · ".join(bonus_fr) or "Équilibré",
+            }
+        )
+    return rows
