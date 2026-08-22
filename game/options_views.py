@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 from careers.catalog import CLASS_INFO, PROFESSION_INFO, SUBCLASS_INFO, class_rows
 from careers.models import CharacterCareer
 
+from .models import Character
 from .services import get_season_progress
 from .views import (
     ACTIVE_CHARACTER_SESSION_KEY,
@@ -89,7 +90,7 @@ def change_class(request):
         return redirect("options")
 
     with transaction.atomic():
-        character = type(current).objects.select_for_update().get(pk=current.pk)
+        character = Character.objects.select_for_update().get(pk=current.pk)
         if character.gold < CLASS_CHANGE_COST:
             messages.error(request, f"You need {CLASS_CHANGE_COST} gold to change class.")
             return redirect("options")
