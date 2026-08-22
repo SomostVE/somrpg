@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="{% static 'css/v010-colony-profile.css' %}?v={{ version }}&profile=3">
   <link rel="stylesheet" href="{% static 'css/v0102-quests.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'css/v0103-notifications.css' %}?v={{ version }}&ui=4">
+  <link rel="stylesheet" href="{% static 'css/v013-options.css' %}?v={{ version }}">
   <link rel="stylesheet" href="{% static 'classic/classic.css' %}?v={{ version }}">
   <script defer src="{% static 'js/i18n.js' %}?v={{ version }}"></script>
   <script defer src="{% static 'js/i18n-v071.js' %}?v={{ version }}"></script>
@@ -39,10 +40,6 @@
         <span><span class="lang-en">RESET IN</span><span class="lang-fr">RESET DANS</span></span><strong id="reset-countdown">--:--:--</strong>
       </div>
       <div class="system-meta">
-        <div class="language-switcher" aria-label="Language / Langue">
-          <button type="button" data-language="fr" aria-pressed="false">FR</button>
-          <button type="button" data-language="en" aria-pressed="false">EN</button>
-        </div>
         <span>VER <span id="version-label">{{ version }}</span></span>
         {% if request.user.is_authenticated and discord_profile %}<span>DISCORD: {{ discord_profile.display_name }}</span>
         {% elif discord_configured %}<a href="{% url 'discord_login' %}"><span class="lang-en">CONNECT DISCORD</span><span class="lang-fr">CONNECTER DISCORD</span></a>
@@ -64,6 +61,8 @@
           <div class="floor-chip sidebar-summary-chip">
             <strong><span class="lang-en">Sector</span><span class="lang-fr">Secteur</span> {{ active_floor|stringformat:"02d" }} / {{ character.floor|stringformat:"02d" }}</strong>
             <span class="sidebar-wallet"><span><span class="lang-en">Gold</span><span class="lang-fr">Or</span></span><b>{{ character.gold }}</b></span>
+            <span class="sidebar-wallet"><span><span class="lang-en">Level</span><span class="lang-fr">Niveau</span></span><b>{{ character.level }}</b></span>
+            <span class="sidebar-wallet"><span>XP</span><b>{{ character.xp }} / {{ character.xp_to_next_level }}</b></span>
           </div>
           <div class="quick-stats" hidden aria-hidden="true"></div>
         </section>
@@ -82,11 +81,6 @@
             {% endfor %}
           {% endfor %}
         </nav>
-        {% if request.user.is_authenticated %}
-        <form method="post" action="{% url 'discord_logout' %}" class="account-form">
-          {% csrf_token %}<button type="submit" class="text-command"><span class="lang-en">&gt; Disconnect</span><span class="lang-fr">&gt; Déconnexion</span></button>
-        </form>
-        {% endif %}
       </aside>
 
       <main class="main-column">
@@ -95,7 +89,7 @@
 
       <aside class="chat-rail">
         <section class="retro-window live-chat-window">
-          <div class="window-title"><span class="lang-en">LIVE CHAT</span><span class="lang-fr">CHAT EN DIRECT</span></div>
+          <div class="window-title">CHAT</div>
           {% if request.user.is_authenticated %}
             <div class="chat-presence"><span class="chat-dot"></span><span class="lang-en">Online only · no history</span><span class="lang-fr">En ligne uniquement · sans historique</span></div>
             <div id="live-chat-messages" class="live-chat-messages" aria-live="polite"></div>
