@@ -2,6 +2,8 @@ from django.conf import settings
 from django.db import models
 from django.utils import timezone
 
+from .progression_rewards import skill_bonus, title_bonus
+
 
 GUARD_GOLD_INTERVAL_SECONDS = 10 * 60
 GUARD_RESOURCE_INTERVAL_SECONDS = 30 * 60
@@ -85,6 +87,7 @@ class Character(models.Model):
     attack = models.PositiveIntegerField(default=5)
     defense = models.PositiveIntegerField(default=1)
     floor = models.PositiveIntegerField(default=1)
+    active_title = models.CharField(max_length=40, blank=True, default="")
 
     dungeon_clears = models.PositiveBigIntegerField(default=0)
     total_gold_earned = models.PositiveBigIntegerField(default=0)
@@ -117,8 +120,32 @@ class Character(models.Model):
         return {"vanguard": 10, "strider": 0, "arcanist": -5}.get(self.archetype, 0)
 
     @property
+    def skill_hp_bonus(self):
+        return skill_bonus(self, "health")
+
+    @property
+    def skill_attack_bonus(self):
+        return skill_bonus(self, "attack")
+
+    @property
+    def skill_defense_bonus(self):
+        return skill_bonus(self, "defense")
+
+    @property
+    def title_hp_bonus(self):
+        return title_bonus(self, "health")
+
+    @property
+    def title_attack_bonus(self):
+        return title_bonus(self, "attack")
+
+    @property
+    def title_defense_bonus(self):
+        return title_bonus(self, "defense")
+
+    @property
     def combat_max_hp(self):
-        return max(1, self.max_hp + self.class_hp_bonus)
+        return max(1, self.max_hp + self.class_hp_bonus + self.skill_hp_bonus + self.title_hp_bonus)
 
     @property
     def equipped_attack_bonus(self):
@@ -136,11 +163,23 @@ class Character(models.Model):
 
     @property
     def total_attack(self):
-        return self.attack + self.class_attack_bonus + self.equipped_attack_bonus
+        return (
+            self.attack
+            + self.class_attack_bonus
+            + self.equipped_attack_bonus
+            + self.skill_attack_bonus
+            + self.title_attack_bonus
+        )
 
     @property
     def total_defense(self):
-        return self.defense + self.class_defense_bonus + self.equipped_defense_bonus
+        return (
+            self.defense
+            + self.class_defense_bonus
+            + self.equipped_defense_bonus
+            + self.skill_defense_bonus
+            + self.title_defense_bonus
+        )
 
     @property
     def guard_active(self):
