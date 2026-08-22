@@ -86,4 +86,4 @@ DISCORD_CLIENT_SECRET = os.getenv("DISCORD_CLIENT_SECRET", "").strip()
 DISCORD_REDIRECT_URI = os.getenv("DISCORD_REDIRECT_URI", "").strip()
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
-SOMRPG_VERSION = "0.13.0"
+SOMRPG_VERSION = "0.15.0"
